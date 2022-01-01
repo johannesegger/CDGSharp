@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="CDG.fs" />
+    <Compile Include="CDG.Parser.fs" />
+    <Compile Include="CDG.Explainer.fs" />
+    <Compile Include="CDG.Formatter.fs" />
+    <Compile Include="CDG.Serializer.fs" />
+    <Compile Include="CDG.Renderer.fs" />
+    <Compile Include="CDG.ImageRenderer.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
+  </ItemGroup>
+
+</Project>
