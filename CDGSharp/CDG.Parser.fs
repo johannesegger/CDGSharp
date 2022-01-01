@@ -83,7 +83,7 @@ module Color =
 
 module CDGPacketInstruction =
     let parse instruction (data: byte array) =
-        Debug.Assert(Array.length data = 16, "Packet data size is expected to be 16")
+        Debug.Assert(Array.length data = CDGPacketInstruction.length, $"Packet data size is expected to be {CDGPacketInstruction.length}")
 
         match ignorePQChannel instruction with
         | 1uy -> MemoryPreset (ColorIndex.parse data.[0], Repeat.parse data.[1])
@@ -99,7 +99,7 @@ module CDGPacketInstruction =
 
 module SubCodePacket =
     let parse content =
-        Debug.Assert(Array.length content = 24, "Sub code packet size is expected to be 24")
+        Debug.Assert(Array.length content = SubCodePacket.length, $"Sub code packet size is expected to be {SubCodePacket.length}")
 
         if ignorePQChannel content.[0] = 9uy then
             CDGPacket { Instruction = CDGPacketInstruction.parse content.[1] content.[4..19] }
@@ -108,6 +108,6 @@ module SubCodePacket =
 
 let parse content =
     content
-    |> Array.chunkBySize 96 // sector
-    |> Array.map (Array.chunkBySize 24 >> Array.map SubCodePacket.parse)
+    |> Array.chunkBySize (Sector.packetCount * SubCodePacket.length)
+    |> Array.map (Array.chunkBySize SubCodePacket.length >> Array.map SubCodePacket.parse)
     |> Array.collect id

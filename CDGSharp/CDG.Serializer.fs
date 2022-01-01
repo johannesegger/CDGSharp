@@ -87,7 +87,7 @@ module SubCodePacket =
     let serialize = function
         | CDGPacket v ->
             let (instruction, data) = CDGPacketInstruction.serialize v.Instruction
-            Debug.Assert(Array.length data = 16, "Sub code data length is expected to be 16")
+            Debug.Assert(Array.length data = CDGPacketInstruction.length, $"Packet data size is expected to be {CDGPacketInstruction.length}")
             [|
                 9uy
                 instruction

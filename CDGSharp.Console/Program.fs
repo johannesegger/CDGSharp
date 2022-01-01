@@ -28,7 +28,7 @@ open System.IO
 //         Instruction =
 //             BorderPreset (ColorIndex 1uy)
 //     }
-//     yield! Array.replicate (4 * 75 * 5) (Other (Array.zeroCreate 24))
+//     yield! Array.replicate (4 * 75 * 5) SubCodePacket.empty
 //     CDGPacket {
 //         Instruction =
 //             TileBlock (
@@ -44,7 +44,7 @@ open System.IO
 //                 }
 //             )
 //     }
-//     yield! Array.replicate (4 * 75 * 5) (Other (Array.zeroCreate 24))
+//     yield! Array.replicate (4 * 75 * 5) SubCodePacket.empty
 //     CDGPacket {
 //         Instruction =
 //             TileBlock (
@@ -82,7 +82,7 @@ open System.IO
 //         Instruction =
 //             BorderPreset (ColorIndex 0uy)
 //     }
-//     // yield! Array.replicate (35 + 4 * 75) (Other (Array.zeroCreate 24))
+//     // yield! Array.replicate (35 + 4 * 75) SubCodePacket.empty
 // ]
 // |> Serializer.serialize
 // |> fun content -> File.WriteAllBytes("Atemlos.cdg", content)
