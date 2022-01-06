@@ -85,6 +85,7 @@ let private applyCDGPacket state packetInstruction =
     match packetInstruction with
     | MemoryPreset (colorIndex, repeat) ->
         ImageRenderState.refreshContent image state.RenderState
+        ImageRenderState.refreshBorder image state.RenderState
         { state with Image = image }
     | BorderPreset colorIndex ->
         ImageRenderState.refreshBorder image state.RenderState
@@ -100,6 +101,7 @@ let private applyCDGPacket state packetInstruction =
     | LoadColorTableLow colorSpecs
     | LoadColorTableHigh colorSpecs ->
         ImageRenderState.refreshContent image state.RenderState
+        ImageRenderState.refreshBorder image state.RenderState
         { state with Image = image }
 
 let applyPacket state = function
