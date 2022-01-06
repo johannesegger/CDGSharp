@@ -1,5 +1,6 @@
 module CDG.ImageRenderer
 
+open CDG.ImageProcessing
 open CDG.Renderer
 open SixLabors.Fonts
 open SixLabors.ImageSharp
@@ -11,26 +12,21 @@ open System.IO
 module private Display =
     let tileBlockSize = Size(TileBlock.width, TileBlock.height)
     let borderSize = tileBlockSize
-    let imageSize = Size(tileBlockSize.Width * int Tiles.columns + 2 * borderSize.Width, tileBlockSize.Height * int Tiles.rows + 2 * borderSize.Height)
+    let contentSize = Size(Display.contentWidth, Display.contentHeight)
+    let imageSize = contentSize + 2 * borderSize
     let fullImageSize = imageSize * 2
-    let cdgImageRectangle =
+    let imageRectangle =
         let location = Point(
             (fullImageSize.Width - imageSize.Width) / 2,
             fullImageSize.Height - imageSize.Height
         )
         Rectangle(location, imageSize)
-    let contentSize = imageSize - 2 * tileBlockSize
     let contentRectangle =
         let location = Point(
-            cdgImageRectangle.Left + borderSize.Width,
-            cdgImageRectangle.Top + borderSize.Height
+            imageRectangle.Left + borderSize.Width,
+            imageRectangle.Top + borderSize.Height
         )
         Rectangle(location, contentSize)
-
-module private Color =
-    let to8BitColorPart (ColorChannel color) = color * 16uy
-    let fromCDGColor color =
-        Rgba32(to8BitColorPart color.Red, to8BitColorPart color.Green, to8BitColorPart color.Blue)
 
 type ImageRenderState = {
     Image: Image<Rgba32>
@@ -57,9 +53,9 @@ module ImageRenderState =
     let refreshBorder (image: Image<Rgba32>) renderState =
         let color = RenderState.getBorderColor renderState |> Color.fromCDGColor
         image.Mutate(fun ctx ->
-            ctx.Fill(color, Rectangle(Display.cdgImageRectangle.Left, Display.cdgImageRectangle.Top, Display.borderSize.Width, Display.cdgImageRectangle.Height))
-               .Fill(color, Rectangle(Display.contentRectangle.Left, Display.cdgImageRectangle.Top, Display.contentRectangle.Width, Display.borderSize.Height))
-               .Fill(color, Rectangle(Display.contentRectangle.Right, Display.cdgImageRectangle.Top, Display.borderSize.Width, Display.cdgImageRectangle.Height))
+            ctx.Fill(color, Rectangle(Display.imageRectangle.Left, Display.imageRectangle.Top, Display.borderSize.Width, Display.imageRectangle.Height))
+               .Fill(color, Rectangle(Display.contentRectangle.Left, Display.imageRectangle.Top, Display.contentRectangle.Width, Display.borderSize.Height))
+               .Fill(color, Rectangle(Display.contentRectangle.Right, Display.imageRectangle.Top, Display.borderSize.Width, Display.imageRectangle.Height))
                .Fill(color, Rectangle(Display.contentRectangle.Left, Display.contentRectangle.Bottom, Display.contentRectangle.Width, Display.borderSize.Height)) |> ignore
         )
 
@@ -76,7 +72,7 @@ let private writeExplanation (ctx: IImageProcessingContext) text =
     ctx.DrawText(text, SystemFonts.CreateFont("Arial", 10f), Color.Black, Point(10, 10)) |> ignore
 
 let private clearExplanation (ctx: IImageProcessingContext) =
-    ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.cdgImageRectangle.Top)) |> ignore
+    ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.imageRectangle.Top)) |> ignore
 
 let private applyCDGPacket state packetInstruction =
     let state = { state with RenderState = Renderer.applyCDGPacket state.RenderState packetInstruction }
@@ -110,7 +106,7 @@ let applyPacket state = function
     | CDGPacket instruction -> applyCDGPacket state instruction
     | Other data ->
         let image = state.Image.Clone(fun ctx ->
-            ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.cdgImageRectangle.Top)) |> ignore
+            ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.imageRectangle.Top)) |> ignore
             writeExplanation ctx "No CD+G information"
         )
         { state with Image = image }

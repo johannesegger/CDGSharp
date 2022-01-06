@@ -46,6 +46,9 @@ module Tiles =
             for row in [1uy..rows] do
             for column in [1uy..columns] -> (Row row, Column column)
         ]
+module Display =
+    let contentWidth = int Tiles.columns * TileBlock.width
+    let contentHeight = int Tiles.rows * TileBlock.height
 type HScrollCommand =
     | NoHScroll
     | ScrollRight
