@@ -1,7 +1,6 @@
 module CDG.KaraokeGenerator
 
 open System
-open System.Diagnostics
 
 type Font = {
     Name: string
@@ -171,8 +170,8 @@ module KaraokeGenerator =
             |> Map.ofSeq
 
         [
-            for column in Seq.init (Array2D.length2 tiles) (fun v -> v + Array2D.base2 tiles) do
-            for row in Seq.init (Array2D.length1 tiles) (fun v -> v + Array2D.base1 tiles) do
+            for column in Array2D.indices2 tiles do
+            for row in Array2D.indices1 tiles do
             for colorIndex in Map.values colorMap do
                 let pixelRows =
                     tiles.[row, column]

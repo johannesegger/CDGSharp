@@ -97,4 +97,3 @@ module SubCodePacket =
 
 module Sector =
     let packetCount = 4
-
