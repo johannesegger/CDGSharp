@@ -1,3 +1,4 @@
 .ionide/
+.fake/
 bin/
 obj/
