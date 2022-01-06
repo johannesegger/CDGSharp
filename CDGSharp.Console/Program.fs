@@ -101,7 +101,7 @@ open System.IO
 
 let backgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 8uy; Blue = ColorChannel 0uy }
 let defaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
-let sungTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+let sungTextColor = { Red = ColorChannel 0uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
 let defaultFont = { Name = "Arial"; Size = 20 }
 let space = { Text = " "; Duration = TimeSpan.Zero }
 let bpm = 128
