@@ -6,13 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Array2D.fs" />
     <Compile Include="CDG.fs" />
     <Compile Include="CDG.Parser.fs" />
     <Compile Include="CDG.Explainer.fs" />
     <Compile Include="CDG.Formatter.fs" />
     <Compile Include="CDG.Serializer.fs" />
     <Compile Include="CDG.Renderer.fs" />
+    <Compile Include="CDG.ImageProcessing.fs" />
     <Compile Include="CDG.ImageRenderer.fs" />
+    <Compile Include="CDG.KaraokeGenerator.fs" />
   </ItemGroup>
 
   <ItemGroup>

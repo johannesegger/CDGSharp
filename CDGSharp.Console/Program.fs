@@ -1,4 +1,6 @@
 ﻿open CDG
+open CDG.KaraokeGenerator
+open System
 open System.IO
 
 // Explainer.explainFile "JingleBells.cdg"
@@ -87,7 +89,7 @@ open System.IO
 // |> Serializer.serialize
 // |> fun content -> File.WriteAllBytes("Atemlos.cdg", content)
 
-ImageRenderer.renderImagesFromCDGFile "Anton-aus-Tirol.cdg"
+// ImageRenderer.renderImagesFromCDGFile "Anton-aus-Tirol.cdg"
 
 // Formatter.formatFile "Anton-aus-Tirol.cdg"
 // let expected =
@@ -96,3 +98,81 @@ ImageRenderer.renderImagesFromCDGFile "Anton-aus-Tirol.cdg"
 //     |> Serializer.serialize
 //     |> fun content -> File.WriteAllBytes("Anton-aus-Tirol.out.cdg", content)
 // Formatter.formatFile "Anton-aus-Tirol.out.cdg"
+
+let backgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 8uy; Blue = ColorChannel 0uy }
+let defaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+let sungTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+let defaultFont = { Name = "Arial"; Size = 20 }
+let space = { Text = " "; Duration = TimeSpan.Zero }
+[|
+    {
+        StartTime = TimeSpan.Zero
+        BackgroundColor = backgroundColor
+        CommandType = ShowTitlePage {
+            DisplayDuration = TimeSpan.FromSeconds 5.
+            SongTitle = { Content = "Atemlos"; Font = { defaultFont with Size = 40 } }
+            Artist = { Content = "Helene Fischer"; Font = defaultFont }
+            Color = defaultTextColor
+        }
+    }
+    {
+        StartTime = TimeSpan(0, 0, 8)
+        BackgroundColor = backgroundColor
+        CommandType = ShowLyricsPage {
+            NotSungYetColor = defaultTextColor
+            SungColor = sungTextColor
+            Font = defaultFont
+            Lines = [
+                [
+                    { Text = "Wir"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "zieh'n"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
+                    { Text = "durch"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "die"; Duration = TimeSpan(0, 0, 0, 0, 250) }
+                ]
+                [
+                    { Text = "Straßen"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
+                    { Text = "und"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "die"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "Clubs"; Duration = TimeSpan(0, 0, 0, 0, 250) }
+                ]
+                [
+                    { Text = "dieser"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
+                    { Text = "Stadt"; Duration = TimeSpan(0, 0, 0, 0, 500) }
+                ]
+            ]
+        }
+    }
+    {
+        StartTime = TimeSpan(0, 0, 13)
+        BackgroundColor = backgroundColor
+        CommandType = ShowLyricsPage {
+            NotSungYetColor = defaultTextColor
+            SungColor = sungTextColor
+            Font = defaultFont
+            Lines = [
+                [
+                    { Text = "Das"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "ist"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "unsre"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
+                    { Text = "Nacht,"; Duration = TimeSpan(0, 0, 0, 0, 250) }
+                ]
+                [
+                    { Text = "wie"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "für"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "uns"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
+                    { Text = "beide"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
+                    { Text = "gemacht,"; Duration = TimeSpan(0, 0, 0, 0, 500) }
+                ]
+                [
+                    { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }; space
+                    { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }
+                ]
+            ]
+        }
+    }
+|]
+|> KaraokeGenerator.generate
+|> Serializer.serialize
+|> fun content -> File.WriteAllBytes("Atemlos.out.cdg", content)
+
+// ImageRenderer.renderImagesFromCDGFile "Atemlos.out.cdg"

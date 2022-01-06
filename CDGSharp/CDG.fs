@@ -8,6 +8,19 @@ type Repeat = Repeat of byte
 type Row = Row of byte
 type Column = Column of byte
 type PixelRow = PixelRow of byte
+module PixelRow =
+    let width = 6
+    let create values =
+        (0uy, values)
+        ||> Seq.fold (fun state v ->
+            state <<< 1 ||| v
+        )
+        |> PixelRow
+    let map zeroValue oneValue (PixelRow pixelRow) =
+        [width - 1..-1..0]
+        |> List.map (fun i ->
+            if (pixelRow >>> i) &&& 1uy = 0uy then zeroValue else oneValue
+        )
 type TileBlockOperation =
     | ReplaceTileBlock
     | XORTileBlock
@@ -19,16 +32,11 @@ type TileBlockData = {
     PixelRows: PixelRow array
 }
 module TileBlock =
-    let width = 6
+    let width = PixelRow.width
     let height = 12
     let getColors data =
         data.PixelRows
-        |> Seq.map (fun (PixelRow v) ->
-            [width - 1..-1..0]
-            |> List.map (fun i ->
-                if (v >>> i) &&& 1uy = 0uy then data.Color1 else data.Color2
-            )
-        )
+        |> Seq.map (PixelRow.map data.Color1 data.Color2)
         |> array2D
     let getBlockCoordinates (Row row) (Column column) =
         ((int column - 1) * width, (int row - 1) * height)
