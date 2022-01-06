@@ -104,6 +104,11 @@ let defaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blu
 let sungTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
 let defaultFont = { Name = "Arial"; Size = 20 }
 let space = { Text = " "; Duration = TimeSpan.Zero }
+let bpm = 128
+let quarterNoteTime = TimeSpan.FromMinutes(1.) / float bpm
+let eighthNoteTime = quarterNoteTime / 2.
+let barTime = quarterNoteTime * 4.
+let offset = TimeSpan(0, 0, 0, 0, 900)
 [|
     {
         StartTime = TimeSpan.Zero
@@ -116,7 +121,7 @@ let space = { Text = " "; Duration = TimeSpan.Zero }
         }
     }
     {
-        StartTime = TimeSpan(0, 0, 8)
+        StartTime = offset + 4. * barTime - eighthNoteTime
         BackgroundColor = backgroundColor
         CommandType = ShowLyricsPage {
             NotSungYetColor = defaultTextColor
@@ -124,26 +129,26 @@ let space = { Text = " "; Duration = TimeSpan.Zero }
             Font = defaultFont
             Lines = [
                 [
-                    { Text = "Wir"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "zieh'n"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
-                    { Text = "durch"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "die"; Duration = TimeSpan(0, 0, 0, 0, 250) }
+                    { Text = "Wir"; Duration = eighthNoteTime }; space
+                    { Text = "zieh'n"; Duration = quarterNoteTime }; space
+                    { Text = "durch"; Duration = eighthNoteTime }; space
+                    { Text = "die"; Duration = eighthNoteTime }
                 ]
                 [
-                    { Text = "Straßen"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
-                    { Text = "und"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "die"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "Clubs"; Duration = TimeSpan(0, 0, 0, 0, 250) }
+                    { Text = "Straßen"; Duration = quarterNoteTime }; space
+                    { Text = "und"; Duration = eighthNoteTime }; space
+                    { Text = "die"; Duration = eighthNoteTime }; space
+                    { Text = "Clubs"; Duration = eighthNoteTime }
                 ]
                 [
-                    { Text = "dieser"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
-                    { Text = "Stadt"; Duration = TimeSpan(0, 0, 0, 0, 500) }
+                    { Text = "dieser"; Duration = quarterNoteTime }; space
+                    { Text = "Stadt"; Duration = quarterNoteTime }
                 ]
             ]
         }
     }
     {
-        StartTime = TimeSpan(0, 0, 13)
+        StartTime = offset + 6. * barTime
         BackgroundColor = backgroundColor
         CommandType = ShowLyricsPage {
             NotSungYetColor = defaultTextColor
@@ -151,17 +156,17 @@ let space = { Text = " "; Duration = TimeSpan.Zero }
             Font = defaultFont
             Lines = [
                 [
-                    { Text = "Das"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "ist"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "unsre"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
-                    { Text = "Nacht,"; Duration = TimeSpan(0, 0, 0, 0, 250) }
+                    { Text = "Das"; Duration = eighthNoteTime }; space
+                    { Text = "ist"; Duration = eighthNoteTime }; space
+                    { Text = "unsre"; Duration = quarterNoteTime }; space
+                    { Text = "Nacht,"; Duration = eighthNoteTime }
                 ]
                 [
-                    { Text = "wie"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "für"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "uns"; Duration = TimeSpan(0, 0, 0, 0, 250) }; space
-                    { Text = "beide"; Duration = TimeSpan(0, 0, 0, 0, 500) }; space
-                    { Text = "gemacht,"; Duration = TimeSpan(0, 0, 0, 0, 500) }
+                    { Text = "wie"; Duration = eighthNoteTime }; space
+                    { Text = "für"; Duration = eighthNoteTime }; space
+                    { Text = "uns"; Duration = eighthNoteTime }; space
+                    { Text = "beide"; Duration = quarterNoteTime }; space
+                    { Text = "gemacht,"; Duration = quarterNoteTime }
                 ]
                 [
                     { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }; space
