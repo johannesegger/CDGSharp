@@ -148,18 +148,20 @@ module KaraokeGenerator =
         |> List.collect (fun (linePartTiles, duration) ->
             [
                 let width = Array2D.length2 linePartTiles * TileBlock.width
-                for column in Array2D.indices2 linePartTiles do
-                let sliceWidth = 3
-                let sliceDisplayDuration = duration / float width * float sliceWidth
-                for sliceX in [ 0..sliceWidth..TileBlock.width - 1] do
-                    let slice =
-                        linePartTiles
-                        |> Array2D.slice (Array2D.base1 linePartTiles) column (Array2D.length1 linePartTiles) 1
-                        |> Array2D.map (fun row ->
-                            row
-                            |> Array2D.mapi (fun _y x v -> if x >= sliceX && x < sliceX + sliceWidth then v else None)
-                        )
-                    (slice, sliceDisplayDuration)
+                if width = 0 then (linePartTiles, duration)
+                else
+                    for column in Array2D.indices2 linePartTiles do
+                    let sliceWidth = 3
+                    let sliceDisplayDuration = duration / float width * float sliceWidth
+                    for sliceX in [ 0..sliceWidth..TileBlock.width - 1] do
+                        let slice =
+                            linePartTiles
+                            |> Array2D.slice (Array2D.base1 linePartTiles) column (Array2D.length1 linePartTiles) 1
+                            |> Array2D.map (fun row ->
+                                row
+                                |> Array2D.mapi (fun _y x v -> if x >= sliceX && x < sliceX + sliceWidth then v else None)
+                            )
+                        (slice, sliceDisplayDuration)
             ]
         )
 

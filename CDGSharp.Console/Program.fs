@@ -104,6 +104,7 @@ let defaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blu
 let sungTextColor = { Red = ColorChannel 0uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
 let defaultFont = { Name = "Arial"; Size = 20 }
 let space = { Text = " "; Duration = TimeSpan.Zero }
+let pause duration = { Text = ""; Duration = duration }
 let bpm = 128
 let quarterNoteTime = TimeSpan.FromMinutes(1.) / float bpm
 let eighthNoteTime = quarterNoteTime / 2.
@@ -166,10 +167,10 @@ let offset = TimeSpan(0, 0, 0, 0, 900)
                     { Text = "für"; Duration = eighthNoteTime }; space
                     { Text = "uns"; Duration = eighthNoteTime }; space
                     { Text = "beide"; Duration = quarterNoteTime }; space
-                    { Text = "gemacht,"; Duration = quarterNoteTime }
+                    { Text = "gemacht,"; Duration = quarterNoteTime }; pause quarterNoteTime
                 ]
                 [
-                    { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }; space
+                    { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }; { space with Duration = quarterNoteTime * 2. }
                     { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }
                 ]
             ]

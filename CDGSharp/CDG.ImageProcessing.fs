@@ -34,12 +34,14 @@ let renderText (text: string) fontName fontSize foregroundColor backgroundColor 
             glyphs.Bounds
     let width = Math.Ceiling(float bounds.Width + float bounds.Left) |> int
     let height = Math.Ceiling(float bounds.Height + float bounds.Top) |> int
-    let image = new Image<Rgba32>(width, height, backgroundColor)
-    image.Mutate(fun ctx ->
-        let options = DrawingOptions(GraphicsOptions = GraphicsOptions(Antialias = false))
-        ctx.Fill(options, foregroundColor, glyphs) |> ignore
-    )
-    Array2D.init image.Height image.Width (fun y x ->
-        let color = image.[x, y]
-        Color.toCDGColor color
-    )
+    if width = 0 || height = 0 then Array2D.zeroCreate 0 0
+    else
+        let image = new Image<Rgba32>(width, height, backgroundColor)
+        image.Mutate(fun ctx ->
+            let options = DrawingOptions(GraphicsOptions = GraphicsOptions(Antialias = false))
+            ctx.Fill(options, foregroundColor, glyphs) |> ignore
+        )
+        Array2D.init image.Height image.Width (fun y x ->
+            let color = image.[x, y]
+            Color.toCDGColor color
+        )
