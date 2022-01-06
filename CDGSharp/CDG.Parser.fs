@@ -102,7 +102,7 @@ module SubCodePacket =
         Debug.Assert(Array.length content = SubCodePacket.length, $"Sub code packet size is expected to be {SubCodePacket.length}")
 
         if ignorePQChannel content.[0] = 9uy then
-            CDGPacket { Instruction = CDGPacketInstruction.parse content.[1] content.[4..19] }
+            CDGPacket (CDGPacketInstruction.parse content.[1] content.[4..19])
         else
             Other content
 

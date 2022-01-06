@@ -67,8 +67,8 @@ module RenderState =
         ColorTable.getColor v.BorderColorIndex v.ColorTable
 
 module Renderer =
-    let applyCDGPacket state packet =
-        match packet.Instruction with
+    let applyCDGPacket state packetInstruction =
+        match packetInstruction with
         | MemoryPreset (colorIndex, repeat) ->
             { state with ColorIndices = ImageColorIndices.create colorIndex }
         | BorderPreset colorIndex ->

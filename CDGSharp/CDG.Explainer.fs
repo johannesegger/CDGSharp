@@ -76,7 +76,7 @@ module CDGPacketInstruction =
 
 module SubCodePacket =
     let explain = function
-        | CDGPacket v -> $"CD+G: {CDGPacketInstruction.explain v.Instruction}"
+        | CDGPacket v -> $"CD+G: {CDGPacketInstruction.explain v}"
         | Other data ->
             data
             |> Array.map (fun v -> $"{v,2}")

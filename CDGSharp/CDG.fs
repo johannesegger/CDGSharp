@@ -77,11 +77,8 @@ type CDGPacketInstruction =
     | LoadColorTableHigh of Color array
 module CDGPacketInstruction =
     let length = 16
-type CDGPacket = {
-    Instruction: CDGPacketInstruction
-}
 type SubCodePacket =
-    | CDGPacket of CDGPacket
+    | CDGPacket of CDGPacketInstruction
     | Other of byte array
 module SubCodePacket =
     let length = 24

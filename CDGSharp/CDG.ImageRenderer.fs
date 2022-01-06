@@ -78,15 +78,15 @@ let private writeExplanation (ctx: IImageProcessingContext) text =
 let private clearExplanation (ctx: IImageProcessingContext) =
     ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.cdgImageRectangle.Top)) |> ignore
 
-let private applyCDGPacket state packet =
-    let state = { state with RenderState = Renderer.applyCDGPacket state.RenderState packet }
+let private applyCDGPacket state packetInstruction =
+    let state = { state with RenderState = Renderer.applyCDGPacket state.RenderState packetInstruction }
 
     let image = state.Image.Clone(fun ctx -> clearExplanation ctx)
     image.Mutate(fun ctx ->
-        Explainer.CDGPacketInstruction.explain packet.Instruction |> writeExplanation ctx
+        Explainer.CDGPacketInstruction.explain packetInstruction |> writeExplanation ctx
     )
 
-    match packet.Instruction with
+    match packetInstruction with
     | MemoryPreset (colorIndex, repeat) ->
         ImageRenderState.refreshContent image state.RenderState
         { state with Image = image }
@@ -107,7 +107,7 @@ let private applyCDGPacket state packet =
         { state with Image = image }
 
 let applyPacket state = function
-    | CDGPacket packet -> applyCDGPacket state packet
+    | CDGPacket instruction -> applyCDGPacket state instruction
     | Other data ->
         let image = state.Image.Clone(fun ctx ->
             ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.cdgImageRectangle.Top)) |> ignore

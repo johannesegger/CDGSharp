@@ -86,11 +86,11 @@ module CDGPacketInstruction =
 module SubCodePacket =
     let serialize = function
         | CDGPacket v ->
-            let (instruction, data) = CDGPacketInstruction.serialize v.Instruction
+            let (instructionCode, data) = CDGPacketInstruction.serialize v
             Debug.Assert(Array.length data = CDGPacketInstruction.length, $"Packet data size is expected to be {CDGPacketInstruction.length}")
             [|
                 9uy
-                instruction
+                instructionCode
                 0uy; 0uy
                 yield! data
                 0uy; 0uy; 0uy; 0uy
