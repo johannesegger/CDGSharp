@@ -63,7 +63,7 @@ module Renderer =
     let applyCDGPacket state packetInstruction =
         match packetInstruction with
         | MemoryPreset (colorIndex, repeat) ->
-            { state with ColorIndices = ImageColorIndices.create colorIndex }
+            { state with ColorIndices = ImageColorIndices.create colorIndex; BorderColorIndex = colorIndex }
         | BorderPreset colorIndex ->
             { state with BorderColorIndex = colorIndex }
         | TileBlock (ReplaceTileBlock, data) ->
