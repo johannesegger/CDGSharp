@@ -218,8 +218,8 @@ module KaraokeGenerator =
 
         [
             MemoryPreset (ColorIndex 0uy, Repeat 0uy) |> CDGPacket
-            LoadColorTableLow colorTable.[0..7] |> CDGPacket
-            LoadColorTableHigh colorTable.[8..15] |> CDGPacket
+            LoadColorTableLow colorTable.[..7] |> CDGPacket
+            LoadColorTableHigh colorTable.[8..] |> CDGPacket
             yield! tileBlocks titleTiles colorTable ImageColorIndices.empty
             yield! tileBlocks artistTiles colorTable  ImageColorIndices.empty
         ]
@@ -236,8 +236,8 @@ module KaraokeGenerator =
 
         let initPackets = [
             MemoryPreset (ColorIndex 0uy, Repeat 0uy) |> CDGPacket
-            LoadColorTableLow colorTable.[0..7] |> CDGPacket
-            LoadColorTableHigh colorTable.[8..15] |> CDGPacket
+            LoadColorTableLow colorTable.[..7] |> CDGPacket
+            LoadColorTableHigh colorTable.[8..] |> CDGPacket
             yield!
                 tiles
                 |> List.collect (fun (lineTiles, _duration) ->
