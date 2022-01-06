@@ -16,9 +16,7 @@ module ColorTable =
 type TileColorIndices = TileColorIndices of ColorIndex[,]
 module TileColorIndices =
     let create colorIndex =
-        Array.replicate TileBlock.width colorIndex
-        |> Array.replicate TileBlock.height
-        |> array2D
+        Array2D.create TileBlock.height TileBlock.width colorIndex
         |> TileColorIndices
     let fromTileBlock data =
         TileBlock.getColors data
@@ -26,21 +24,16 @@ module TileColorIndices =
     let get x y (TileColorIndices v) =
         v.[y, x]
     let xor (TileColorIndices a) (TileColorIndices b) =
-        Array.init TileBlock.height (fun row ->
-            Array.init TileBlock.width (fun column ->
-                ColorIndex.xor a.[row, column] b.[row, column]
-            )
+        Array2D.init TileBlock.height TileBlock.width (fun row column ->
+            ColorIndex.xor a.[row, column] b.[row, column]
         )
-        |> array2D
         |> TileColorIndices
 
 type ImageColorIndices = ImageColorIndices of TileColorIndices[,]
 module ImageColorIndices =
     let create colorIndex =
         TileColorIndices.create colorIndex
-        |> Array.replicate (int Tiles.columns)
-        |> Array.replicate (int Tiles.rows)
-        |> array2D
+        |> Array2D.create (int Tiles.rows) (int Tiles.columns)
         |> ImageColorIndices
 
     let get (Row blockRow) (Column blockColumn) (ImageColorIndices colorIndices) =
