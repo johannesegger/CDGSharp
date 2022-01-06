@@ -1,6 +1,7 @@
 module CDG.KaraokeGenerator
 
 open System
+open CDG.Renderer
 
 type Font = {
     Name: string
@@ -165,23 +166,29 @@ module KaraokeGenerator =
             ]
         )
 
-    let private tileBlocks (tiles: Color option[,][,]) (colorTable: Color array) =
-        let colorMap =
+    let private tileBlocks (tiles: Color option[,][,]) (colorTable: Color array) colorIndices =
+        let indexedColors =
             colorTable
-            |> Seq.mapi (fun i v -> (v, ColorIndex (byte i)))
-            |> Map.ofSeq
+            |> Seq.mapi (fun i v -> (ColorIndex (byte i), v))
+            |> Seq.toList
 
         [
             for column in Array2D.indices2 tiles do
             for row in Array2D.indices1 tiles do
-            for colorIndex in Map.values colorMap do
+            for colorIndex in indexedColors |> List.map fst do
+                let tileBlockRow = byte row + 1uy |> Row
+                let tileBlockColumn = byte column + 1uy |> Column
                 let pixelRows =
                     tiles.[row, column]
-                    |> Array2D.map (fun color ->
+                    |> Array2D.mapi (fun y x color ->
                         let pixelColorIndex =
                             color
-                            |> Option.map (fun v -> Map.find v colorMap)
-                        if pixelColorIndex = Some colorIndex then 1uy else 0uy
+                            |> Option.map (fun v -> List.find (snd >> ((=) v)) indexedColors |> fst)
+                        let previousColorIndex =
+                            colorIndices
+                            |> ImageColorIndices.get tileBlockRow tileBlockColumn
+                            |> TileColorIndices.get x y
+                        if pixelColorIndex |> Option.map (ColorIndex.xor previousColorIndex) = Some colorIndex then 1uy else 0uy
                     )
                     |> Array2D.toSequence
                     |> Seq.map PixelRow.create
@@ -190,8 +197,8 @@ module KaraokeGenerator =
                     let tileBlockData = {
                         Color1 = ColorIndex 0uy
                         Color2 = colorIndex
-                        Row = byte row + 1uy |> Row
-                        Column = byte column + 1uy |> Column
+                        Row = tileBlockRow
+                        Column = tileBlockColumn
                         PixelRows = pixelRows
                     }
                     TileBlock (XORTileBlock, tileBlockData) |> CDGPacket
@@ -213,8 +220,8 @@ module KaraokeGenerator =
             MemoryPreset (ColorIndex 0uy, Repeat 0uy) |> CDGPacket
             LoadColorTableLow colorTable.[0..7] |> CDGPacket
             LoadColorTableHigh colorTable.[8..15] |> CDGPacket
-            yield! tileBlocks titleTiles colorTable
-            yield! tileBlocks artistTiles colorTable
+            yield! tileBlocks titleTiles colorTable ImageColorIndices.empty
+            yield! tileBlocks artistTiles colorTable  ImageColorIndices.empty
         ]
 
     let private getLyricsPagePackets backgroundColor data =
@@ -227,22 +234,25 @@ module KaraokeGenerator =
             |> Seq.collect Array2D.toFlatSequence
             |> getColorTable backgroundColor
 
-        [
+        let initPackets = [
             MemoryPreset (ColorIndex 0uy, Repeat 0uy) |> CDGPacket
             LoadColorTableLow colorTable.[0..7] |> CDGPacket
             LoadColorTableHigh colorTable.[8..15] |> CDGPacket
             yield!
                 tiles
                 |> List.collect (fun (lineTiles, _duration) ->
-                    tileBlocks lineTiles colorTable
+                    tileBlocks lineTiles colorTable ImageColorIndices.empty
                 )
-        ],
-        [
+        ]
+
+        let renderState = Renderer.render initPackets
+
+        let animationPackets = [
             yield!
                 sungTiles
                 |> sliceLineParts
                 |> List.collect (fun (tiles, displayDuration) ->
-                    let instructions = tileBlocks tiles colorTable
+                    let instructions = tileBlocks tiles colorTable renderState.ColorIndices
                     let renderDuration = getRenderDuration instructions.Length
                     let timeToFill = displayDuration - renderDuration
                     let fillingPackets =
@@ -254,6 +264,8 @@ module KaraokeGenerator =
                     instructions @ fillingPackets
                 )
         ]
+
+        (initPackets, animationPackets)
 
     let private processCommand packets command =
         let currentRenderDuration =

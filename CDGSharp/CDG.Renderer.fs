@@ -36,6 +36,8 @@ module ImageColorIndices =
         |> Array2D.create (int Tiles.rows) (int Tiles.columns)
         |> ImageColorIndices
 
+    let empty = create (ColorIndex 0uy)
+
     let get (Row blockRow) (Column blockColumn) (ImageColorIndices colorIndices) =
         colorIndices.[int blockRow - 1, int blockColumn - 1]
 
@@ -83,3 +85,11 @@ module Renderer =
             { state with ColorTable = { state.ColorTable with Low = colors } }
         | LoadColorTableHigh colors ->
             { state with ColorTable = { state.ColorTable with High = colors } }
+
+    let applyPacket state = function
+        | CDGPacket instruction -> applyCDGPacket state instruction
+        | Other _data -> state
+
+    let render packets =
+        (RenderState.empty, packets)
+        ||> List.fold applyPacket
