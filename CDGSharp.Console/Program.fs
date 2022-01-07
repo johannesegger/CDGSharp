@@ -101,13 +101,14 @@ open System.IO
 
 let backgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 8uy; Blue = ColorChannel 0uy }
 let defaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
-let sungTextColor = { Red = ColorChannel 0uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+let sungTextColor = { Red = ColorChannel 8uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
 let defaultFont = { Name = "Arial"; Size = 20 }
 let space = { Text = " "; Duration = TimeSpan.Zero }
 let pause duration = { Text = ""; Duration = duration }
 let bpm = 128
 let quarterNoteTime = TimeSpan.FromMinutes(1.) / float bpm
 let eighthNoteTime = quarterNoteTime / 2.
+let halfNoteTime = quarterNoteTime * 2.
 let barTime = quarterNoteTime * 4.
 let offset = TimeSpan(0, 0, 0, 0, 900)
 [|
@@ -170,8 +171,8 @@ let offset = TimeSpan(0, 0, 0, 0, 900)
                     { Text = "gemacht,"; Duration = quarterNoteTime }; pause quarterNoteTime
                 ]
                 [
-                    { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }; { space with Duration = quarterNoteTime * 2. }
-                    { Text = "oho"; Duration = TimeSpan(0, 0, 0, 0, 1000) }
+                    { Text = "oho"; Duration = halfNoteTime }; { space with Duration = halfNoteTime }
+                    { Text = "oho"; Duration = halfNoteTime }
                 ]
             ]
         }
