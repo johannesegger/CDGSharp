@@ -1,6 +1,7 @@
 module CDG.KaraokeGenerator
 
 open System
+open CDG.ImageProcessing
 open CDG.Renderer
 
 type Font = {
@@ -53,6 +54,81 @@ module KaraokeGenerator =
             | OffsetStart v -> v
             | OffsetEnd v -> imageSize - textSize - v
 
+    type private TileColors = TileColors of Color option[,]
+    module private TileColors =
+        let init fn =
+            Array2D.init TileBlock.height TileBlock.width (fun y x -> fn x y)
+            |> TileColors
+        let getAllColors (TileColors colors) =
+            colors
+            |> Array2D.toFlatSequence
+        let toXORPixelRows colorIndex colorIndexLookup tileColorIndices (TileColors data) =
+            data
+            |> Array2D.mapi (fun y x color ->
+                let pixelColorIndex =
+                    color
+                    |> Option.map (fun v -> Map.find v colorIndexLookup)
+                let previousColorIndex = TileColorIndices.get x y tileColorIndices
+                if pixelColorIndex |> Option.map (ColorIndex.xor previousColorIndex) = Some colorIndex then 1uy else 0uy
+            )
+            |> Array2D.toSequence
+            |> Seq.map PixelRow.create
+            |> Seq.toArray
+        let slice xs (TileColors data) =
+            data
+            |> Array2D.mapi (fun _y x v -> if xs |> List.contains x then v else None)
+            |> TileColors
+
+    type private TilesColors = TilesColors of TileColors[,]
+    module private TilesColors =
+        let private rowToIndex (Row row) = int row - 1
+        let private columnToIndex (Column column) = int column - 1
+        let private indexToRow i = Row (byte i + 1uy)
+        let private indexToColumn i = Column (byte i + 1uy)
+        let columns (TilesColors data) = Array2D.indices2 data |> Seq.map indexToColumn
+        let rows (TilesColors data) = Array2D.indices1 data |> Seq.map indexToRow
+        let get row column (TilesColors data) = data.[rowToIndex row, columnToIndex column]
+        let getAllColors (TilesColors colors) =
+            colors
+            |> Array2D.toFlatSequence
+            |> Seq.collect TileColors.getAllColors
+        let generateTiles x y renderedText =
+            let (textWidth, textHeight) = (RenderedText.width renderedText, RenderedText.height renderedText)
+
+            let x = Position.getOffsetStart textWidth Display.contentWidth x
+            let xOffsetFromTile = x % TileBlock.width
+            let y = Position.getOffsetStart textHeight Display.contentHeight y
+            let yOffsetFromTile = y % TileBlock.height
+
+            let startRow = y / TileBlock.height
+            let startColumn = x / TileBlock.width
+
+            let rows =
+                float (yOffsetFromTile + textHeight) / float TileBlock.height
+                |> Math.Ceiling
+                |> int
+            let columns =
+                float (xOffsetFromTile + textWidth) / float TileBlock.width
+                |> Math.Ceiling
+                |> int
+            
+            Array2D.initBased startRow startColumn rows columns (fun row column ->
+                let xStart = (column - startColumn) * TileBlock.width
+                let yStart = (row - startRow) * TileBlock.height
+                TileColors.init (fun x y ->
+                    let sourceX = xStart + x - xOffsetFromTile
+                    let sourceY = yStart + y - yOffsetFromTile
+                    RenderedText.tryGet sourceX sourceY renderedText |> Option.flatten
+                )
+            )
+            |> TilesColors
+
+        let slice column xs (TilesColors data) =
+            data
+            |> Array2D.slice (Array2D.base1 data) (columnToIndex column) (Array2D.length1 data) 1
+            |> Array2D.map (TileColors.slice xs)
+            |> TilesColors
+
     let private getRenderDuration packetCount =
         TimeSpan((int64 packetCount * 1_000_000_0L) / (75L * 4L))
 
@@ -67,42 +143,11 @@ module KaraokeGenerator =
 
     let private renderText text foregroundColor backgroundColor =
         ImageProcessing.renderText text.Content text.Font.Name text.Font.Size foregroundColor backgroundColor
-        |> Array2D.map (fun color -> if color = backgroundColor then None else Some color)
-
-    let private generateTiles x y pixels =
-        let (textWidth, textHeight) = (Array2D.length2 pixels, Array2D.length1 pixels)
-
-        let x = Position.getOffsetStart textWidth Display.contentWidth x
-        let xOffsetFromTile = x % TileBlock.width
-        let y = Position.getOffsetStart textHeight Display.contentHeight y
-        let yOffsetFromTile = y % TileBlock.height
-
-        let startRow = y / TileBlock.height
-        let startColumn = x / TileBlock.width
-
-        let rows =
-            float (yOffsetFromTile + textHeight) / float TileBlock.height
-            |> Math.Ceiling
-            |> int
-        let columns =
-            float (xOffsetFromTile + textWidth) / float TileBlock.width
-            |> Math.Ceiling
-            |> int
-        
-        Array2D.initBased startRow startColumn rows columns (fun row column ->
-            let xStart = (column - startColumn) * TileBlock.width
-            let yStart = (row - startRow) * TileBlock.height
-            Array2D.init TileBlock.height TileBlock.width (fun y x ->
-                let sourceX = xStart + x - xOffsetFromTile
-                let sourceY = yStart + y - yOffsetFromTile
-                if sourceX < 0 || sourceY < 0 || sourceX >= textWidth || sourceY >= textHeight then None
-                else pixels.[sourceY, sourceX]
-            )
-        )
+        |> RenderedText.remove backgroundColor
 
     let private renderTiledText text x y foregroundColor backgroundColor =
         renderText text foregroundColor backgroundColor
-        |> generateTiles x y
+        |> TilesColors.generateTiles x y
 
     let private renderTiledLines lines font x y lineHeight foregroundColor backgroundColor =
         let totalHeight = (List.length lines - 1) * lineHeight + font.Size
@@ -115,12 +160,12 @@ module KaraokeGenerator =
                     let renderedText = renderText { Content = linePart.Text; Font = font } foregroundColor backgroundColor
                     (linePart, renderedText)
                 )
-            let totalWidth = renderedLineParts |> List.sumBy (snd >> Array2D.length2)
+            let totalWidth = renderedLineParts |> List.sumBy (snd >> RenderedText.width)
             let offsetX = Position.getOffsetStart totalWidth Display.contentWidth x
             (([], offsetX), renderedLineParts)
             ||> List.fold (fun (tiles, offsetX) (linePart, renderedText) ->
-                let partWidth = Array2D.length2 renderedText
-                let partTiles = generateTiles (OffsetStart offsetX) (OffsetStart (offsetY + i * lineHeight)) renderedText
+                let partWidth = RenderedText.width renderedText
+                let partTiles = TilesColors.generateTiles (OffsetStart offsetX) (OffsetStart (offsetY + i * lineHeight)) renderedText
                 ((partTiles, linePart.Duration) :: tiles, offsetX + partWidth)
             )
             |> fst
@@ -144,61 +189,53 @@ module KaraokeGenerator =
         |> Seq.take 16
         |> Seq.toArray
 
-    let private sliceLineParts (lineParts: (Color option[,][,] * TimeSpan) list) =
-        lineParts
-        |> List.collect (fun (linePartTiles, duration) ->
-            [
-                let width = Array2D.length2 linePartTiles * TileBlock.width
-                if width = 0 then (linePartTiles, duration)
-                else
-                    for column in Array2D.indices2 linePartTiles do
-                    let sliceWidth = 3
-                    let sliceDisplayDuration = duration / float width * float sliceWidth
-                    for sliceX in [ 0..sliceWidth..TileBlock.width - 1] do
-                        let slice =
-                            linePartTiles
-                            |> Array2D.slice (Array2D.base1 linePartTiles) column (Array2D.length1 linePartTiles) 1
-                            |> Array2D.map (fun row ->
-                                row
-                                |> Array2D.mapi (fun _y x v -> if x >= sliceX && x < sliceX + sliceWidth then v else None)
-                            )
-                        (slice, sliceDisplayDuration)
+    let private sliceLinePart (tiles: TilesColors) (duration: TimeSpan) =
+        [
+            match TilesColors.columns tiles |> Seq.toList with
+            | [] -> (tiles, duration)
+            | columns ->
+                let width = columns.Length * TileBlock.width
+                for column in columns do
+                let sliceWidth = 3
+                let sliceDisplayDuration = duration / float width * float sliceWidth
+                for sliceX in [ 0..TileBlock.width - 1] |> List.chunkBySize sliceWidth do
+                    let slice =
+                        tiles
+                        |> TilesColors.slice column sliceX
+                    (slice, sliceDisplayDuration)
             ]
-        )
 
-    let private tileBlocks (tiles: Color option[,][,]) (colorTable: Color array) colorIndices =
+    let private sliceLineParts (lineParts: (TilesColors * TimeSpan) list) =
+        lineParts
+        |> List.collect (fun (linePartTiles, duration) -> sliceLinePart linePartTiles duration)
+
+    let private tileBlocks tiles (colorTable: Color array) colorIndices =
         let indexedColors =
             colorTable
             |> Seq.mapi (fun i v -> (ColorIndex (byte i), v))
             |> Seq.toList
+        let colorIndexLookup =
+            indexedColors
+            |> List.map (fun (i, c) -> (c, i))
+            |> Map.ofList
 
         [
-            for column in Array2D.indices2 tiles do
-            for row in Array2D.indices1 tiles do
+            for column in TilesColors.columns tiles do
+            for row in TilesColors.rows tiles do
             for colorIndex in indexedColors |> List.map fst do
-                let tileBlockRow = byte row + 1uy |> Row
-                let tileBlockColumn = byte column + 1uy |> Column
+                let tileColorIndices =
+                    colorIndices
+                    |> ImageColorIndices.get row column
                 let pixelRows =
-                    tiles.[row, column]
-                    |> Array2D.mapi (fun y x color ->
-                        let pixelColorIndex =
-                            color
-                            |> Option.map (fun v -> List.find (snd >> ((=) v)) indexedColors |> fst)
-                        let previousColorIndex =
-                            colorIndices
-                            |> ImageColorIndices.get tileBlockRow tileBlockColumn
-                            |> TileColorIndices.get x y
-                        if pixelColorIndex |> Option.map (ColorIndex.xor previousColorIndex) = Some colorIndex then 1uy else 0uy
-                    )
-                    |> Array2D.toSequence
-                    |> Seq.map PixelRow.create
-                    |> Seq.toArray
+                    tiles
+                    |> TilesColors.get row column
+                    |> TileColors.toXORPixelRows colorIndex colorIndexLookup tileColorIndices
                 if pixelRows |> Array.exists (fun (PixelRow v) -> v > 0uy) then
                     let tileBlockData = {
                         Color1 = ColorIndex 0uy
                         Color2 = colorIndex
-                        Row = tileBlockRow
-                        Column = tileBlockColumn
+                        Row = row
+                        Column = column
                         PixelRows = pixelRows
                     }
                     TileBlock (XORTileBlock, tileBlockData) |> CDGPacket
@@ -213,7 +250,7 @@ module KaraokeGenerator =
                 titleTiles
                 artistTiles
             ]
-            |> Seq.collect (Array2D.toFlatSequence >> Seq.collect Array2D.toFlatSequence)
+            |> Seq.collect TilesColors.getAllColors
             |> getColorTable backgroundColor
 
         [
@@ -230,8 +267,7 @@ module KaraokeGenerator =
 
         let colorTable =
             (tiles @ sungTiles)
-            |> Seq.collect (fst >> Array2D.toFlatSequence)
-            |> Seq.collect Array2D.toFlatSequence
+            |> Seq.collect (fst >> TilesColors.getAllColors)
             |> getColorTable backgroundColor
 
         let initPackets = [
