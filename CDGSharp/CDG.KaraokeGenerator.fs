@@ -117,8 +117,22 @@ module KaraokeGenerator =
                 float (xOffsetFromTile + textWidth) / float TileBlock.width
                 |> Math.Ceiling
                 |> int
-            
-            Array2D.initBased startRow startColumn rows columns (fun row column ->
+
+            let (base1, length1) =
+                if startRow < 0 || startRow + rows > int Tiles.rows then
+                    printfn "WARNING: Text doesn't fit on screen"
+                    let startRow = Math.Max(startRow, 0)
+                    (startRow, Math.Min(rows, int Tiles.rows - startRow))
+                else (startRow, rows)
+
+            let (base2, length2) =
+                if startColumn < 0 || startColumn + columns > int Tiles.columns then
+                    printfn "WARNING: Text doesn't fit on screen"
+                    let startColumn = Math.Max(startColumn, 0)
+                    (startColumn, Math.Min(columns, int Tiles.columns - startColumn))
+                else (startColumn, columns)
+
+            Array2D.initBased base1 base2 length1 length2 (fun row column ->
                 let xStart = (column - startColumn) * TileBlock.width
                 let yStart = (row - startRow) * TileBlock.height
                 TileColors.init (fun x y ->
