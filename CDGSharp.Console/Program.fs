@@ -122,8 +122,8 @@ let offset = TimeSpan(0, 0, 0, 0, 900)
         BackgroundColor = backgroundColor
         CommandType = ShowTitlePage {
             DisplayDuration = TimeSpan.FromSeconds 5.
-            SongTitle = { Content = "Atemlos"; Font = { defaultFont with Size = 40 } }
-            Artist = { Content = "Helene Fischer"; Font = defaultFont }
+            SongTitle = { Text = { Content = "Atemlos"; Font = { defaultFont with Size = 40 } }; X = Center; Y = OffsetStart (4 * TileBlock.height) }
+            Artist = { Text = { Content = "Helene Fischer"; Font = defaultFont }; X = Center; Y = OffsetStart (12 * TileBlock.height) }
             Color = defaultTextColor
         }
     }

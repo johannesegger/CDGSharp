@@ -14,16 +14,32 @@ type Text = {
     Font: Font
 }
 
-type LinePart = {
-    Text: string
-    Duration: TimeSpan
+type Position =
+    | Center
+    | OffsetStart of int
+    | OffsetEnd of int
+module private Position =
+    let getOffsetStart textSize imageSize = function
+        | Center -> (imageSize - textSize) / 2
+        | OffsetStart v -> v
+        | OffsetEnd v -> imageSize - textSize - v
+
+type PositionedText = {
+    Text: Text
+    X: Position
+    Y: Position
 }
 
 type TitlePageData = {
     DisplayDuration: TimeSpan
-    SongTitle: Text
-    Artist: Text
+    SongTitle: PositionedText
+    Artist: PositionedText
     Color: Color
+}
+
+type LinePart = {
+    Text: string
+    Duration: TimeSpan
 }
 
 type LyricsPageData = {
@@ -44,16 +60,6 @@ type Command = {
 }
 
 module KaraokeGenerator =
-    type private Position =
-        | Center
-        | OffsetStart of int
-        | OffsetEnd of int
-    module private Position =
-        let getOffsetStart textSize imageSize = function
-            | Center -> (imageSize - textSize) / 2
-            | OffsetStart v -> v
-            | OffsetEnd v -> imageSize - textSize - v
-
     type private TileColors = TileColors of Color option[,]
     module private TileColors =
         let init fn =
@@ -242,8 +248,8 @@ module KaraokeGenerator =
         ]
 
     let private getTitlePagePackets backgroundColor data =
-        let titleTiles = renderTiledText data.SongTitle Center (OffsetStart (5 * TileBlock.height)) data.Color backgroundColor
-        let artistTiles = renderTiledText data.Artist Center (OffsetStart (12 * TileBlock.height)) data.Color backgroundColor
+        let titleTiles = renderTiledText data.SongTitle.Text data.SongTitle.X data.SongTitle.Y data.Color backgroundColor
+        let artistTiles = renderTiledText data.Artist.Text data.Artist.X data.Artist.Y data.Color backgroundColor
 
         let colorTable =
             [
