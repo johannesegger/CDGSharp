@@ -1,4 +1,5 @@
 ﻿open CDG
+open CDG.ImageProcessing
 open CDG.KaraokeGenerator
 open System
 open System.IO
@@ -102,7 +103,11 @@ open System.IO
 let backgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 8uy; Blue = ColorChannel 0uy }
 let defaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
 let sungTextColor = { Red = ColorChannel 8uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
-let defaultFont = { Name = "Arial"; Size = 20 }
+let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
+// let defaultFont = { Type = CustomFont (Path.Combine(fontDir, "Retro Gaming.ttf")); Size = 15 }
+// let defaultFont = { Type = CustomFont (Path.Combine(fontDir, "PixeloidMono-1G8ae.ttf")); Size = 15 }
+let defaultFont = { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15 }
+// let defaultFont = { Type = SystemFont "Arial"; Size = 20 }
 let space = { Text = " "; Duration = TimeSpan.Zero }
 let pause duration = { Text = ""; Duration = duration }
 let bpm = 128

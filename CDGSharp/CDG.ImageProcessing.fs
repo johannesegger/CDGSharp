@@ -1,4 +1,4 @@
-module internal CDG.ImageProcessing
+module CDG.ImageProcessing
 
 open SixLabors.Fonts
 open SixLabors.ImageSharp
@@ -8,7 +8,7 @@ open SixLabors.ImageSharp.PixelFormats
 open SixLabors.ImageSharp.Processing
 open System
 
-module Color =
+module internal Color =
     let to8BitColorPart (ColorChannel color) = int color * 255 / 15 |> byte
     let fromCDGColor color =
         Rgba32(to8BitColorPart color.Red, to8BitColorPart color.Green, to8BitColorPart color.Blue)
@@ -21,8 +21,8 @@ module Color =
             Blue = to4BitColorPart color.B
         }
 
-type RenderedText<'a> = RenderedText of 'a[,]
-module RenderedText =
+type internal RenderedText<'a> = RenderedText of 'a[,]
+module internal RenderedText =
     let empty =
         Array2D.zeroCreate 0 0
         |> RenderedText
@@ -42,11 +42,23 @@ module RenderedText =
             let (RenderedText data) = renderedText
             Some data.[y, x]
 
-module ImageProcessing =
-    let renderText (text: string) fontName fontSize foregroundColor backgroundColor =
+type FontType =
+    | SystemFont of string
+    | CustomFont of string
+module internal FontType =
+    let createFont size = function
+        | SystemFont name ->
+            SystemFonts.CreateFont(name, float32 size)
+        | CustomFont path ->
+            let fontCollection = FontCollection()
+            let fontFamily = fontCollection.Install(path)
+            fontFamily.CreateFont(float32 size)
+
+module internal ImageProcessing =
+    let renderText (text: string) fontType fontSize foregroundColor backgroundColor =
         let foregroundColor = Color.fromCDGColor foregroundColor
         let backgroundColor = Color.fromCDGColor backgroundColor
-        let font = SystemFonts.CreateFont(fontName, float32 fontSize)
+        let font = FontType.createFont fontSize fontType
         let glyphs = TextBuilder.GenerateGlyphs(text, RendererOptions(font))
         let bounds =
             if glyphs |> Seq.isEmpty then
