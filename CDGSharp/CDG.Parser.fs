@@ -1,6 +1,6 @@
 module CDG.Parser
 
-open System.Diagnostics
+open CDG.BinaryFormat
 
 let private ignorePQChannel v = v &&& 0b0011_1111uy
 
@@ -82,8 +82,9 @@ module Color =
         { Red = red; Green = green; Blue = blue }
 
 module CDGPacketInstruction =
-    let parse instruction (data: byte array) =
-        Debug.Assert(Array.length data = CDGPacketInstruction.length, $"Packet data size is expected to be {CDGPacketInstruction.length}")
+    let parse instruction data =
+        if Array.length data <> CDGPacketInstruction.dataLength then
+            failwith $"Packet data is expected to be of length {CDGPacketInstruction.dataLength}, but was {Array.length data}"
 
         match ignorePQChannel instruction with
         | 1uy -> MemoryPreset (ColorIndex.parse data.[0], Repeat.parse data.[1])
@@ -99,15 +100,18 @@ module CDGPacketInstruction =
 
 module SubCodePacket =
     let parse content =
-        Debug.Assert(Array.length content = SubCodePacket.length, $"Sub code packet size is expected to be {SubCodePacket.length}")
+        if Array.length content <> SubCodePacket.dataLength then
+            failwith $"Sub code packet size is expected to be {SubCodePacket.dataLength}, but was {Array.length content}"
 
         if ignorePQChannel content.[0] = 9uy then
             CDGPacket (CDGPacketInstruction.parse content.[1] content.[4..19])
+        elif content |> Array.forall ((=) 0uy) then
+            EmptyPacket
         else
-            Other content
+            OtherPacket content
 
 let parse content =
     content
-    |> Array.chunkBySize (Sector.packetCount * SubCodePacket.length)
-    |> Array.map (Array.chunkBySize SubCodePacket.length >> Array.map SubCodePacket.parse)
+    |> Array.chunkBySize (Sector.packetCount * SubCodePacket.dataLength)
+    |> Array.map (Array.chunkBySize SubCodePacket.dataLength >> Array.map SubCodePacket.parse)
     |> Array.collect id

@@ -11,6 +11,7 @@
     </None>
     <Compile Include="Array2D.fs" />
     <Compile Include="CDG.fs" />
+    <Compile Include="CDG.BinaryFormat.fs" />
     <Compile Include="CDG.Parser.fs" />
     <Compile Include="CDG.Explainer.fs" />
     <Compile Include="CDG.Formatter.fs" />

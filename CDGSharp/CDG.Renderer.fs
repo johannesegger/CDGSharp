@@ -88,7 +88,8 @@ module Renderer =
 
     let applyPacket state = function
         | CDGPacket instruction -> applyCDGPacket state instruction
-        | Other _data -> state
+        | EmptyPacket
+        | OtherPacket _ -> state
 
     let render packets =
         (RenderState.empty, packets)

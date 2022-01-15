@@ -86,14 +86,7 @@ type CDGPacketInstruction =
     | DefineTransparentColor of ColorIndex
     | LoadColorTableLow of Color array
     | LoadColorTableHigh of Color array
-module CDGPacketInstruction =
-    let length = 16
 type SubCodePacket =
     | CDGPacket of CDGPacketInstruction
-    | Other of byte array
-module SubCodePacket =
-    let length = 24
-    let empty = Other (Array.zeroCreate length)
-
-module Sector =
-    let packetCount = 4
+    | EmptyPacket
+    | OtherPacket of byte array

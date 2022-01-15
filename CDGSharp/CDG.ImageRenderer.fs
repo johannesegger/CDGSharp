@@ -106,7 +106,8 @@ let private applyCDGPacket state packetInstruction =
 
 let applyPacket state = function
     | CDGPacket instruction -> applyCDGPacket state instruction
-    | Other data ->
+    | EmptyPacket
+    | OtherPacket _ ->
         let image = state.Image.Clone(fun ctx ->
             ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.imageRectangle.Top)) |> ignore
             writeExplanation ctx "No CD+G information"

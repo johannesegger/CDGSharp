@@ -159,7 +159,7 @@ module KaraokeGenerator =
         if timeToFill < TimeSpan.Zero then None
         else
             let count = getPacketCount timeToFill
-            List.replicate count SubCodePacket.empty |> Some
+            List.replicate count EmptyPacket |> Some
 
     let private renderText text foregroundColor backgroundColor =
         ImageProcessing.renderText text.Content text.Font.Type text.Font.Size foregroundColor backgroundColor

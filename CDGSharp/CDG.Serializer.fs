@@ -1,6 +1,6 @@
 module CDG.Serializer
 
-open System.Diagnostics
+open CDG.BinaryFormat
 
 module ColorIndex =
     let serialize (ColorIndex v) = v
@@ -87,7 +87,8 @@ module SubCodePacket =
     let serialize = function
         | CDGPacket v ->
             let (instructionCode, data) = CDGPacketInstruction.serialize v
-            Debug.Assert(Array.length data = CDGPacketInstruction.length, $"Packet data size is expected to be {CDGPacketInstruction.length}")
+            if Array.length data <> CDGPacketInstruction.dataLength then
+                failwith $"Packet data size is expected to be {CDGPacketInstruction.dataLength}"
             [|
                 9uy
                 instructionCode
@@ -95,7 +96,8 @@ module SubCodePacket =
                 yield! data
                 0uy; 0uy; 0uy; 0uy
             |]
-        | Other data -> data
+        | EmptyPacket -> Array.zeroCreate CDGPacketInstruction.dataLength
+        | OtherPacket data -> data
 
 let serialize =
     Array.map SubCodePacket.serialize >> Array.collect id
