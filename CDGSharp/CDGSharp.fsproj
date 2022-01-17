@@ -5,6 +5,16 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>CDGSharp</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>Johannes Egger</Authors>
+    <Description>CD+G parser, serializer and karaoke generator</Description>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="fonts\OldSchoolAdventures-42j9.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
