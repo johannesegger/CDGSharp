@@ -25,7 +25,9 @@ module PixelRow =
         PixelRow (ignorePQChannel v)
 
 module TileBlockData =
-    let parse (data: byte array) =
+    let parse data =
+        if Array.length data <> CDGPacketInstruction.dataLength then
+            failwith $"Tile block data is expected to be of length {CDGPacketInstruction.dataLength}, but was {Array.length data}"
         {
             Color1 = ColorIndex.parse data.[0]
             Color2 = ColorIndex.parse data.[1]
