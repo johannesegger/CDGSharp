@@ -7,6 +7,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CDGSharp", "CDGSharp\CDGSha
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CDGSharp.Console", "CDGSharp.Console\CDGSharp.Console.fsproj", "{14F0EAC3-D14D-4D3D-BF7A-DACA4AE0B2D0}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CDGSharp.Test", "CDGSharp.Test\CDGSharp.Test.fsproj", "{4EF3F265-4820-435E-84D5-75BAB95AA139}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{14F0EAC3-D14D-4D3D-BF7A-DACA4AE0B2D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14F0EAC3-D14D-4D3D-BF7A-DACA4AE0B2D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14F0EAC3-D14D-4D3D-BF7A-DACA4AE0B2D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EF3F265-4820-435E-84D5-75BAB95AA139}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EF3F265-4820-435E-84D5-75BAB95AA139}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EF3F265-4820-435E-84D5-75BAB95AA139}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EF3F265-4820-435E-84D5-75BAB95AA139}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
