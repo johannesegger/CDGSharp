@@ -1,6 +1,8 @@
 ﻿open System
 open System.Diagnostics
 open System.IO
+open NAudio.Utils
+open NAudio.Wave
 
 module String =
     let trim (text: string) =
@@ -146,11 +148,20 @@ let addTimes lyrics getTime =
         else fn lyrics index
     fn lyrics Index.zero
 
-let run lyrics audioPath =
-    let watch = Stopwatch.StartNew()
-    addTimes lyrics (fun () -> watch.Elapsed)
+let playAudio (path: string) =
+    let reader = new Mp3FileReaderBase(path, Mp3FileReaderBase.FrameDecompressorBuilder(fun v -> new AcmMp3FrameDecompressor(v)))
+    let source = new RawSourceWaveStream(reader, WaveFormat(reader.Mp3WaveFormat.SampleRate * 3 / 4, reader.Mp3WaveFormat.Channels))
+    let waveOut = new WaveOutEvent()
+    waveOut.Init(source)
+    waveOut.Play()
+    waveOut
 
-let lyrics = File.ReadAllText "Atemlos min.txt" |> Lyrics.parse
-run lyrics ""
+let run lyrics audioPath =
+    let audio = playAudio audioPath
+    addTimes lyrics (fun () -> audio.GetPositionTimeSpan())
+
+let lyrics = File.ReadAllText "Matthias Reim - Verdammt Ich Lieb Dich.txt" |> Lyrics.parse
+let audioPath = "Matthias Reim - Verdammt Ich Lieb Dich.mp3"
+run lyrics audioPath
 |> Lyrics.toString
 |> printfn "%s"
