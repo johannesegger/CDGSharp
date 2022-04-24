@@ -145,6 +145,9 @@ let addTimes lyrics getTime =
             | None ->
                 updateLyricsLine lyrics index None
                 lyrics
+        elif input = ConsoleKey.E then
+            // TODO go to previous word and set end time
+            fn lyrics index
         else fn lyrics index
     fn lyrics Index.zero
 
