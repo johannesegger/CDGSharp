@@ -9,6 +9,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CDGSharp.Console", "CDGShar
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CDGSharp.Test", "CDGSharp.Test\CDGSharp.Test.fsproj", "{4EF3F265-4820-435E-84D5-75BAB95AA139}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CDGSharp.LyricsGenerator", "CDGSharp.LyricsGenerator\CDGSharp.LyricsGenerator.fsproj", "{B35B4912-BE37-4A04-99E0-D43E7AF605B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{4EF3F265-4820-435E-84D5-75BAB95AA139}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EF3F265-4820-435E-84D5-75BAB95AA139}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EF3F265-4820-435E-84D5-75BAB95AA139}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B35B4912-BE37-4A04-99E0-D43E7AF605B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B35B4912-BE37-4A04-99E0-D43E7AF605B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B35B4912-BE37-4A04-99E0-D43E7AF605B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B35B4912-BE37-4A04-99E0-D43E7AF605B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
