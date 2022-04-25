@@ -141,10 +141,13 @@ let addTimes lyrics getTime =
                 fn lyrics newIndex
             | None ->
                 updateLyricsLine lyrics index None
-                lyrics
+                fn lyrics index
         elif input = ConsoleKey.E then
             // TODO go to previous word and set end time
             fn lyrics index
+        elif input = ConsoleKey.Escape then
+            printf "%s" Lyrics.pageSeparator
+            lyrics
         else fn lyrics index
     fn lyrics Index.zero
 
@@ -157,6 +160,7 @@ let playAudio (path: string) =
     waveOut
 
 let run lyrics audioPath =
+    printfn "Press <Escape> to end playback"
     let audio = playAudio audioPath
     addTimes lyrics (fun () -> audio.GetPositionTimeSpan())
 
