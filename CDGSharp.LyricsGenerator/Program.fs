@@ -5,10 +5,8 @@ open NAudio.Utils
 open NAudio.Wave
 
 module String =
-    let trim (text: string) =
-        text.Trim()
     let split (separator: string) (text: string) =
-        text.Split(separator)
+        text.Split(separator, StringSplitOptions.RemoveEmptyEntries)
 
 module LyricsTime =
     let toString (v: TimeSpan) =
@@ -56,8 +54,7 @@ type Lyrics = Lyrics of LyricsPage list
 module Lyrics =
     let pageSeparator = Environment.NewLine + Environment.NewLine
     let parse =
-        String.trim
-        >> String.split pageSeparator
+        String.split pageSeparator
         >> Seq.map LyricsPage.parse
         >> Seq.toList
         >> Lyrics
