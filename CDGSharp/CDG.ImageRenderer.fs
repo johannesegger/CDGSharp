@@ -1,5 +1,6 @@
 module CDG.ImageRenderer
 
+open CDG.BinaryFormat
 open CDG.ImageProcessing
 open CDG.Renderer
 open SixLabors.Fonts
@@ -7,6 +8,7 @@ open SixLabors.ImageSharp
 open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.ImageSharp.PixelFormats
 open SixLabors.ImageSharp.Processing
+open System
 open System.IO
 
 module private Display =
@@ -74,6 +76,13 @@ let private writeExplanation (ctx: IImageProcessingContext) text =
 let private clearExplanation (ctx: IImageProcessingContext) =
     ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.imageRectangle.Top)) |> ignore
 
+let private writeTime (ctx: IImageProcessingContext) index =
+    let ticksPerSecond = 10_000_000
+    let sectorsPerSecond = 75
+    let time = TimeSpan((int64 index * int64 ticksPerSecond) / (int64 sectorsPerSecond * int64 Sector.packetCount))
+    let x = ctx.GetCurrentSize().Width - 100
+    ctx.DrawText(time.ToString(), SystemFonts.CreateFont("Arial", 10f), Color.Black, Point(x, 10)) |> ignore
+
 let private applyCDGPacket state packetInstruction =
     let state = { state with RenderState = Renderer.applyCDGPacket state.RenderState packetInstruction }
 
@@ -116,9 +125,12 @@ let applyPacket state = function
 
 let renderImages packets =
     (ImageRenderState.empty, packets)
-    ||> Array.scan applyPacket
-    |> Array.skip 1
-    |> Array.map (fun v -> v.Image)
+    ||> Seq.scan applyPacket
+    |> Seq.skip 1
+    |> Seq.mapi (fun i state ->
+        state.Image.Mutate(fun ctx -> writeTime ctx (i + 1))
+        state.Image
+    )
 
 let renderImagesFromCDGFile (path: string) =
     let targetDir = Path.GetFileNameWithoutExtension(path)
