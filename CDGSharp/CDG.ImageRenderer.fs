@@ -128,6 +128,5 @@ let renderImagesFromCDGFile (path: string) =
     Directory.CreateDirectory(targetDir) |> ignore
     File.ReadAllBytes(path)
     |> Parser.parse
-    |> Array.truncate (4 * 75 * 20)
     |> renderImages
     |> Seq.iteri (fun i image -> image.SaveAsBmp(Path.Combine(targetDir, $"{i + 1}.bmp")))
