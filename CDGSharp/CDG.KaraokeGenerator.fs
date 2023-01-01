@@ -1,6 +1,7 @@
 module CDG.KaraokeGenerator
 
 open System
+open CDG.BinaryFormat
 open CDG.ImageProcessing
 open CDG.Renderer
 
@@ -149,11 +150,14 @@ module KaraokeGenerator =
             |> Array2D.map (TileColors.slice xs)
             |> TilesColors
 
+    let private ticksPerSecond = 10_000_000
+    let private sectorsPerSecond = 75
+
     let private getRenderDuration packetCount =
-        TimeSpan((int64 packetCount * 1_000_000_0L) / (75L * 4L))
+        TimeSpan((int64 packetCount * int64 ticksPerSecond) / (int64 sectorsPerSecond * int64 Sector.packetCount))
 
     let private getPacketCount (duration: TimeSpan) =
-        (duration.Ticks * 75L * 4L) / 1_000_000_0L |> int
+        (duration.Ticks * int64 sectorsPerSecond * int64 Sector.packetCount) / int64 ticksPerSecond |> int
 
     let private tryGetFillingPackets timeToFill =
         if timeToFill < TimeSpan.Zero then None
