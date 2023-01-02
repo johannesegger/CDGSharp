@@ -96,7 +96,7 @@ module SubCodePacket =
                 yield! data
                 0uy; 0uy; 0uy; 0uy
             |]
-        | EmptyPacket -> Array.zeroCreate CDGPacketInstruction.dataLength
+        | EmptyPacket -> Array.zeroCreate SubCodePacket.dataLength
         | OtherPacket data -> data
 
 let serialize =
