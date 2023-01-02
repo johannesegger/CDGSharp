@@ -76,10 +76,13 @@ let private writeExplanation (ctx: IImageProcessingContext) text =
 let private clearExplanation (ctx: IImageProcessingContext) =
     ctx.Fill(Color.White, Rectangle(0, 0, Display.fullImageSize.Width, Display.imageRectangle.Top)) |> ignore
 
-let private writeTime (ctx: IImageProcessingContext) index =
+let private getTimeFromIndex index =
     let ticksPerSecond = 10_000_000
     let sectorsPerSecond = 75
-    let time = TimeSpan((int64 index * int64 ticksPerSecond) / (int64 sectorsPerSecond * int64 Sector.packetCount))
+    TimeSpan((int64 index * int64 ticksPerSecond) / (int64 sectorsPerSecond * int64 Sector.packetCount))
+
+let private writeTime (ctx: IImageProcessingContext) index =
+    let time = getTimeFromIndex index
     let x = ctx.GetCurrentSize().Width - 100
     ctx.DrawText(time.ToString(), SystemFonts.CreateFont("Arial", 10f), Color.Black, Point(x, 10)) |> ignore
 
@@ -127,10 +130,7 @@ let renderImages packets =
     (ImageRenderState.empty, packets)
     ||> Seq.scan applyPacket
     |> Seq.skip 1
-    |> Seq.mapi (fun i state ->
-        state.Image.Mutate(fun ctx -> writeTime ctx (i + 1))
-        state.Image
-    )
+    |> Seq.map (fun state -> state.Image)
 
 let renderImagesFromCDGFile (path: string) =
     let targetDir = Path.GetFileNameWithoutExtension(path)
@@ -141,4 +141,4 @@ let renderImagesFromCDGFile (path: string) =
     File.ReadAllBytes(path)
     |> Parser.parse
     |> renderImages
-    |> Seq.iteri (fun i image -> image.SaveAsBmp(Path.Combine(targetDir, $"{i + 1}.bmp")))
+    |> Seq.iteri (fun index image-> image.SaveAsBmp(Path.Combine(targetDir, $"{(getTimeFromIndex index):``mm\-ss\-fffffff``}.bmp")))
