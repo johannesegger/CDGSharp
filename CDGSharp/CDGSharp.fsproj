@@ -20,6 +20,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Array2D.fs" />
+    <Compile Include="Seq.fs" />
     <Compile Include="CDG.fs" />
     <Compile Include="CDG.BinaryFormat.fs" />
     <Compile Include="CDG.Parser.fs" />
@@ -30,6 +31,8 @@
     <Compile Include="CDG.ImageProcessing.fs" />
     <Compile Include="CDG.ImageRenderer.fs" />
     <Compile Include="CDG.KaraokeGenerator.fs" />
+    <Compile Include="CDG.LrcParser.fs" />
+    <Compile Include="CDG.LrcToKaraoke.fs" />
   </ItemGroup>
 
   <ItemGroup>
