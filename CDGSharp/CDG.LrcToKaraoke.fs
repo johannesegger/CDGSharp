@@ -79,12 +79,12 @@ module LrcToKaraoke =
                 |> List.map snd
             )
 
-        let startTime =
-            LyricsIndex.getWord lyrics LyricsIndex.zero
-            |> fun v -> v.StartTime
-            |> Option.defaultValue TimeSpan.Zero
-        ((startTime, []), indices)
+        ((TimeSpan.Zero, []), indices)
         ||> List.fold (fun (startTime, list) index ->
+            let startTime =
+                index |> List.collect id |> List.tryHead
+                |> Option.bind (LyricsIndex.getWord lyrics >> fun v -> v.StartTime)
+                |> Option.defaultValue startTime
             let (nextStartTime, result) = lines index startTime
             let page = {
                 StartTime = startTime
