@@ -151,7 +151,6 @@ open System.IO
 //         StartTime = TimeSpan.Zero
 //         BackgroundColor = backgroundColor
 //         CommandType = ShowTitlePage {
-//             DisplayDuration = TimeSpan.FromSeconds 5.
 //             SongTitle = { Text = { Content = "Atemlos"; Font = { defaultFont with Size = 40 } }; X = Center; Y = OffsetStart (4 * TileBlock.height) }
 //             Artist = { Text = { Content = "Helene Fischer"; Font = defaultFont }; X = Center; Y = OffsetStart (12 * TileBlock.height) }
 //             Color = defaultTextColor
@@ -192,20 +191,20 @@ open System.IO
 
 // ImageRenderer.renderImagesFromCDGFile "Helene Fischer - Atemlos.cdg"
 
-// let settings = {
-//     BackgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
-//     DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
-//     SungTextColor = { Red = ColorChannel 8uy; Green = ColorChannel 0uy; Blue = ColorChannel 0uy }
-//     DefaultFont =
-//         let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
-//         { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15 }
-// }
-// LrcFile.parseFile "Matthias Reim - Verdammt Ich Lieb Dich.lrc"
-// |> fun file -> { file with Metadata = { file.Metadata with Title = "Verdammt\nIch Lieb Dich" } }
-// |> LrcFile.textToUpper
-// |> LrcToKaraoke.getKaraokeCommands settings
-// |> KaraokeGenerator.generate
-// |> Serializer.serialize
-// |> fun content -> File.WriteAllBytes("Matthias Reim - Verdammt Ich Lieb Dich.cdg", content)
+let settings = {
+    BackgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
+    DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+    SungTextColor = { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
+    DefaultFont =
+        let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
+        { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15 }
+}
+LrcFile.parseFile "Matthias Reim - Verdammt Ich Lieb Dich.lrc"
+|> fun file -> { file with Metadata = { file.Metadata with Title = "Verdammt\nIch Lieb Dich" } }
+|> LrcFile.textToUpper
+|> LrcToKaraoke.getKaraokeCommands settings
+|> KaraokeGenerator.generate
+|> Serializer.serialize
+|> fun content -> File.WriteAllBytes("Matthias Reim - Verdammt Ich Lieb Dich.cdg", content)
 
-ImageRenderer.renderImagesFromCDGFile "Matthias Reim - Verdammt Ich Lieb Dich.cdg"
+// ImageRenderer.renderImagesFromCDGFile "Matthias Reim - Verdammt Ich Lieb Dich.cdg"

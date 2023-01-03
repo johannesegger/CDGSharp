@@ -17,7 +17,6 @@ module LrcToKaraoke =
             StartTime = TimeSpan.Zero
             BackgroundColor = settings.BackgroundColor
             CommandType = ShowTitlePage {
-                DisplayDuration = TimeSpan.FromSeconds 5.
                 SongTitle = { Text = { Content = metadata.Title; Font = { settings.DefaultFont with Size = settings.DefaultFont.Size * 7 / 6 } }; X = Center; Y = OffsetStart (4 * TileBlock.height) }
                 Artist = { Text = { Content = metadata.Artist; Font = settings.DefaultFont }; X = Center; Y = OffsetStart (12 * TileBlock.height) }
                 Color = settings.DefaultTextColor

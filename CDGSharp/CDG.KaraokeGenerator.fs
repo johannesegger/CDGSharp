@@ -32,7 +32,6 @@ type PositionedText = {
 }
 
 type TitlePageData = {
-    DisplayDuration: TimeSpan
     SongTitle: PositionedText
     Artist: PositionedText
     Color: Color
@@ -300,16 +299,17 @@ module KaraokeGenerator =
             MemoryPreset (ColorIndex 0uy, Repeat 0uy) |> CDGPacket
             LoadColorTableLow colorTable.[..7] |> CDGPacket
             LoadColorTableHigh colorTable.[8..] |> CDGPacket
-            yield!
-                tiles
-                |> List.collect (fun (lineTiles, _duration) ->
-                    tileBlocks lineTiles colorTable ImageColorIndices.empty
-                )
         ]
 
-        let renderState = Renderer.render initPackets
+        let drawTextPackets =
+            tiles
+            |> List.collect (fun (lineTiles, _duration) ->
+                tileBlocks lineTiles colorTable ImageColorIndices.empty
+            )
 
-        let animationPackets = [
+        let renderState = Renderer.render (initPackets @ drawTextPackets)
+
+        let singPackets = [
             yield!
                 sungTiles
                 |> sliceLineParts
@@ -327,32 +327,72 @@ module KaraokeGenerator =
                 )
         ]
 
-        (initPackets, animationPackets)
+        (initPackets, drawTextPackets, singPackets)
+
+    let private replaceEmptyPackets list newPackets =
+        let emptyPackets =
+            list
+            |> List.filter (function | EmptyPacket -> true | _ -> false)
+        printfn $"Empty: %d{emptyPackets.Length}/%d{list.Length}, New: %d{List.length newPackets}"
+        let rec fn remainingPackets remainingNewPackets acc =
+            let remainingCDGPacketCount =
+                remainingPackets
+                |> List.filter (function CDGPacket _ -> true | _ -> false)
+                |> List.length
+            match remainingPackets, remainingNewPackets with
+            | [], [] -> List.rev acc
+            | [], x ->
+                printfn $"WARNING: %d{x.Length} new packet(s) dropped at the end"
+                fn [] [] acc
+            | (CDGPacket _ as packet :: remainingPackets', _)
+            | (OtherPacket _ as packet :: remainingPackets', _) ->
+                let acc' = packet :: acc
+                fn remainingPackets' remainingNewPackets acc'
+            | EmptyPacket :: _, remainingNewPackets when List.length remainingNewPackets > remainingCDGPacketCount ->
+                let dropCount = List.length remainingNewPackets - remainingCDGPacketCount
+                printfn $"WARNING: %d{dropCount} new packet(s) dropped because insert would be too late"
+                let remainingNewPackets' = List.skip dropCount remainingNewPackets
+                fn remainingPackets remainingNewPackets' acc
+            | EmptyPacket :: remainingPackets', newPacket :: remainingNewPackets' ->
+                let acc' = newPacket :: acc
+                fn remainingPackets' remainingNewPackets' acc'
+            | (EmptyPacket as packet) :: remainingPackets', [] ->
+                let acc' = packet :: acc
+                fn remainingPackets' [] acc'
+
+        fn list newPackets []
 
     let private processCommand (totalPacketCount, previousPackets) command =
         let currentRenderDuration = getRenderDuration totalPacketCount
         let newPackets =
             match command.CommandType with
             | ShowTitlePage data ->
-                let packets = getTitlePagePackets command.BackgroundColor data
-                let renderDuration = getRenderDuration packets.Length
-                let fillingPackets =
-                    tryGetFillingPackets (data.DisplayDuration - renderDuration)
-                    |> Option.defaultWith (fun () ->
-                        printfn $"WARNING: Rendering {packets.Length} tile blocks takes longer than time available ({renderDuration} > {data.DisplayDuration})"
-                        []
-                    )
-                packets @ fillingPackets
+                getTitlePagePackets command.BackgroundColor data
             | ShowLyricsPage data ->
-                let (initPackets, animationPackets) = getLyricsPagePackets command.BackgroundColor data
-                let renderDuration = currentRenderDuration + (getRenderDuration initPackets.Length)
-                let fillingPackets =
-                    tryGetFillingPackets (command.StartTime - renderDuration)
-                    |> Option.defaultWith (fun () ->
-                        printfn $"WARNING: Lyrics page starting at {command.StartTime} can't be scheduled on time ({renderDuration} > {command.StartTime})"
-                        []
-                    )
-                initPackets @ fillingPackets @ animationPackets
+                let (initPackets, drawTextPackets, singPackets) = getLyricsPagePackets command.BackgroundColor data
+                let drawTextStartTime =
+                    let drawTextDuration = getRenderDuration (initPackets.Length + drawTextPackets.Length)
+                    let earliestStartTime = command.StartTime - drawTextDuration - TimeSpan.FromSeconds(2.)
+                    if earliestStartTime > currentRenderDuration then earliestStartTime
+                    else currentRenderDuration
+                let (drawTextPacketsBeforeSingStart, drawTextPacketsInBetween) =
+                    let splitIndex = getPacketCount (command.StartTime - drawTextStartTime)
+                    if splitIndex < List.length drawTextPackets then
+                        List.splitAt splitIndex drawTextPackets
+                    else (drawTextPackets, [])
+                let fillingPackets1 =
+                    tryGetFillingPackets (drawTextStartTime - currentRenderDuration)
+                    |> Option.defaultValue []
+                let fillingPackets2 =
+                    tryGetFillingPackets (command.StartTime - (currentRenderDuration + getRenderDuration (fillingPackets1.Length + initPackets.Length + drawTextPacketsBeforeSingStart.Length)))
+                    |> Option.defaultValue []
+                [
+                    yield! initPackets
+                    yield! fillingPackets1
+                    yield! drawTextPacketsBeforeSingStart
+                    yield! fillingPackets2
+                    yield! replaceEmptyPackets singPackets drawTextPacketsInBetween
+                ]
 
         (totalPacketCount + newPackets.Length, newPackets)
 
