@@ -329,11 +329,8 @@ module KaraokeGenerator =
 
         (initPackets, animationPackets)
 
-    let private processCommand packets command =
-        let currentRenderDuration =
-            packets
-            |> List.sumBy List.length
-            |> getRenderDuration
+    let private processCommand (totalPacketCount, previousPackets) command =
+        let currentRenderDuration = getRenderDuration totalPacketCount
         let newPackets =
             match command.CommandType with
             | ShowTitlePage data ->
@@ -357,11 +354,10 @@ module KaraokeGenerator =
                     )
                 initPackets @ fillingPackets @ animationPackets
 
-        newPackets :: packets
+        (totalPacketCount + newPackets.Length, newPackets)
 
     let generate commands =
-        ([], commands)
-        ||> List.fold processCommand
-        |> List.rev
-        |> List.collect id
+        ((0, []), commands)
+        ||> List.scan processCommand
+        |> List.collect snd
         |> List.toArray
