@@ -101,7 +101,7 @@ module LrcToKaraoke =
         |> snd
 
     let getKaraokeCommands settings lrcFile =
-        [|
+        [
             getShowTitlePageCommand settings lrcFile.Metadata
             yield! getShowLyricsPageCommands settings lrcFile.Lyrics
-        |]
+        ]

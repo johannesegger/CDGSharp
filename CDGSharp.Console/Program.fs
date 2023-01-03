@@ -146,7 +146,7 @@ open System.IO
 //         }
 //     }
 
-// [|
+// [
 //     {
 //         StartTime = TimeSpan.Zero
 //         BackgroundColor = backgroundColor
@@ -185,7 +185,7 @@ open System.IO
 //     yield! refrainShort 66
 //     lyricsPage (89. * barTime - 2. * quarterNoteTime) [ [t1_4 "Lust"; t3_8 "pulsiert"; t1_4 "auf"]; [t1_2 "meiner"; t1_4 "Haut"] ]
 //     yield! refrainShort 91
-// |]
+// ]
 // |> KaraokeGenerator.generate
 // |> Serializer.serialize
 // |> fun content -> File.WriteAllBytes("Helene Fischer - Atemlos.cdg", content)

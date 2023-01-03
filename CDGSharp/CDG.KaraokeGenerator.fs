@@ -361,7 +361,7 @@ module KaraokeGenerator =
 
     let generate commands =
         ([], commands)
-        ||> Array.fold processCommand
+        ||> List.fold processCommand
         |> List.rev
         |> List.collect id
         |> List.toArray
