@@ -383,11 +383,12 @@ module KaraokeGenerator =
                     tryGetFillingPackets (command.StartTime - (currentRenderDuration + getRenderDuration (fillingPackets1.Length + initPackets.Length + drawTextPacketsBeforeSingStart.Length)))
                     |> Option.defaultValue []
                 [
-                    yield! initPackets
                     yield! fillingPackets1
+                    yield! initPackets
                     yield! drawTextPacketsBeforeSingStart
                     yield! fillingPackets2
                     yield! replaceEmptyPackets singPackets drawTextPacketsInBetween
+                    MemoryPreset (ColorIndex 0uy, Repeat 0uy) |> CDGPacket
                 ]
 
         (totalPacketCount + newPackets.Length, newPackets)
