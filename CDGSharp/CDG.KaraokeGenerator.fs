@@ -330,10 +330,6 @@ module KaraokeGenerator =
         (initPackets, drawTextPackets, singPackets)
 
     let private replaceEmptyPackets list newPackets =
-        let emptyPackets =
-            list
-            |> List.filter (function | EmptyPacket -> true | _ -> false)
-        printfn $"Empty: %d{emptyPackets.Length}/%d{list.Length}, New: %d{List.length newPackets}"
         let rec fn remainingPackets remainingNewPackets acc =
             let remainingCDGPacketCount =
                 remainingPackets
