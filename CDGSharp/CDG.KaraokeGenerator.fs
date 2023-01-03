@@ -120,7 +120,7 @@ module KaraokeGenerator =
 
             let (base1, length1) =
                 if startRow < 0 || startRow + rows > int Tiles.rows then
-                    printfn "WARNING: Text doesn't fit on screen"
+                    printfn $"WARNING: Text \"{RenderedText.text renderedText}\" doesn't fit on screen vertically"
                     let startRow = Math.Max(startRow, 0)
                     let rowsLeft = Math.Max(int Tiles.rows - startRow, 0)
                     (startRow, Math.Min(rows, rowsLeft))
@@ -128,7 +128,7 @@ module KaraokeGenerator =
 
             let (base2, length2) =
                 if startColumn < 0 || startColumn + columns > int Tiles.columns then
-                    printfn "WARNING: Text doesn't fit on screen"
+                    printfn $"WARNING: Text \"{RenderedText.text renderedText}\" doesn't fit on screen horizontally"
                     let startColumn = Math.Max(startColumn, 0)
                     let columnsLeft = Math.Max(int Tiles.columns - startColumn, 0)
                     (startColumn, Math.Min(columns, columnsLeft))

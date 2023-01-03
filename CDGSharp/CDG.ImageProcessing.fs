@@ -21,25 +21,26 @@ module internal Color =
             Blue = to4BitColorPart color.B
         }
 
-type internal RenderedText<'a> = RenderedText of 'a[,]
+type internal RenderedText<'a> = RenderedText of string * 'a[,]
 module internal RenderedText =
     let empty =
-        Array2D.zeroCreate 0 0
-        |> RenderedText
-    let init width height fn =
-        Array2D.init height width (fun y x -> fn x y)
-        |> RenderedText
-    let map fn (RenderedText array) =
-        Array2D.map fn array
-        |> RenderedText
+        let data = Array2D.zeroCreate 0 0
+        RenderedText ("", data)
+    let init text (width, height) fn =
+        let data = Array2D.init height width (fun y x -> fn x y)
+        RenderedText (text, data)
+    let map fn (RenderedText (text, data)) =
+        let data' = Array2D.map fn data
+        RenderedText (text, data')
     let remove value =
         map (fun v -> if v = value then None else Some v)
-    let width (RenderedText data) = Array2D.length2 data
-    let height (RenderedText data) = Array2D.length1 data
+    let text (RenderedText (text, _)) = text
+    let width (RenderedText (_, data)) = Array2D.length2 data
+    let height (RenderedText (_, data)) = Array2D.length1 data
     let tryGet x y renderedText =
         if x < 0 || y < 0 || x >= width renderedText || y >= height renderedText then None
         else
-            let (RenderedText data) = renderedText
+            let (RenderedText (_, data)) = renderedText
             Some data.[y, x]
 
 type FontType =
@@ -75,7 +76,7 @@ module internal ImageProcessing =
                 let options = DrawingOptions(GraphicsOptions = GraphicsOptions(Antialias = false))
                 ctx.Fill(options, foregroundColor, glyphs) |> ignore
             )
-            RenderedText.init image.Width image.Height (fun x y ->
+            RenderedText.init text (image.Width, image.Height) (fun x y ->
                 let color = image.[x, y]
                 Color.toCDGColor color
             )
