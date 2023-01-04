@@ -132,15 +132,15 @@ let tests = testList "LrcToKaraoke" [
                     ]
                     [
                         { StartTime = None; EndTime = Some (TimeSpan.FromSeconds 2.); Text = "How" }
-                        { StartTime = None; EndTime = Some (TimeSpan.FromSeconds 3.5); Text = "are" }
-                        { StartTime = None; EndTime = Some (TimeSpan.FromSeconds 4.); Text = "you?" }
+                        { StartTime = None; EndTime = Some (TimeSpan.FromSeconds 4.); Text = "are" }
+                        { StartTime = None; EndTime = None; Text = "you?" }
                     ]
                 ]
                 [
                     [
-                        { StartTime = Some (TimeSpan.FromSeconds 5.); EndTime = None; Text = "This" }
-                        { StartTime = Some (TimeSpan.FromSeconds 6.); EndTime = None; Text = "is" }
-                        { StartTime = Some (TimeSpan.FromSeconds 7.); EndTime = None; Text = "page" }
+                        { StartTime = None; EndTime = None; Text = "This" }
+                        { StartTime = None; EndTime = None; Text = "is" }
+                        { StartTime = None; EndTime = None; Text = "page" }
                     ]
                     [
                         { StartTime = Some (TimeSpan.FromSeconds 10.); EndTime = Some (TimeSpan.FromSeconds 10.2); Text = "#2" }
@@ -166,15 +166,15 @@ let tests = testList "LrcToKaraoke" [
                         [
                             { Text = "How"; Duration = TimeSpan.FromSeconds(0.5) }
                             { Text = " "; Duration = TimeSpan.Zero }
-                            { Text = "are"; Duration = TimeSpan.FromSeconds(1.5) }
+                            { Text = "are"; Duration = TimeSpan.FromSeconds(2.) }
                             { Text = " "; Duration = TimeSpan.Zero }
-                            { Text = "you?"; Duration = TimeSpan.FromSeconds(0.5) }
+                            { Text = "you?"; Duration = TimeSpan.FromSeconds(1.5) }
                         ]
                     ]
                 }
             }
             {
-                StartTime = TimeSpan.FromSeconds(5.)
+                StartTime = TimeSpan.FromSeconds(5.5)
                 BackgroundColor = defaultSettings.BackgroundColor
                 CommandType = ShowLyricsPage {
                     NotSungYetColor = defaultSettings.DefaultTextColor
@@ -182,11 +182,11 @@ let tests = testList "LrcToKaraoke" [
                     Font = defaultSettings.DefaultFont
                     Lines = [
                         [
-                            { Text = "This"; Duration = TimeSpan.FromSeconds(1.) }
+                            { Text = "This"; Duration = TimeSpan.FromSeconds(1.5) }
                             { Text = " "; Duration = TimeSpan.Zero }
-                            { Text = "is"; Duration = TimeSpan.FromSeconds(1.) }
+                            { Text = "is"; Duration = TimeSpan.FromSeconds(1.5) }
                             { Text = " "; Duration = TimeSpan.Zero }
-                            { Text = "page"; Duration = TimeSpan.FromSeconds(3.) }
+                            { Text = "page"; Duration = TimeSpan.FromSeconds(1.5) }
                         ]
                         [
                             { Text = "#2"; Duration = TimeSpan.FromSeconds(0.2) }
