@@ -23,7 +23,7 @@ module LrcToKaraoke =
             }
         }
 
-    let private getShowLyricsPageCommands settings lyrics =
+    let getShowLyricsPageCommands settings lyrics =
         let words indices startTime =
             ((startTime, []), indices)
             ||> List.fold (fun (startTime, list) index ->
@@ -51,9 +51,11 @@ module LrcToKaraoke =
                     match LyricsIndex.nextWord lyrics index with // TODO this is ugly
                     | Some v when v.PageIndex <> index.PageIndex ->
                         list @ [ part ]
-                    | Some v when v.LineIndex <> index.LineIndex ->
+                    | Some v when v.LineIndex <> index.LineIndex && breakDuration > TimeSpan.Zero ->
                         let breakPart = { Text = ""; Duration = breakDuration }
                         list @ [ part; breakPart ]
+                    | Some v when v.LineIndex <> index.LineIndex ->
+                        list @ [ part ]
                     | Some _ ->
                         let breakPart = { Text = " "; Duration = breakDuration }
                         list @ [ part; breakPart ]

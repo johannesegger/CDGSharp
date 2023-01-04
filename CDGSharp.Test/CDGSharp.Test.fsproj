@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Include="Parser.fs" />
+    <Compile Include="LrcToKaraoke.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 
