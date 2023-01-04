@@ -12,7 +12,7 @@ type Settings = {
 }
 
 module LrcToKaraoke =
-    let private getShowTitlePageCommand settings metadata =
+    let getShowTitlePageCommand settings metadata =
         {
             StartTime = TimeSpan.Zero
             BackgroundColor = settings.BackgroundColor
@@ -24,44 +24,44 @@ module LrcToKaraoke =
         }
 
     let getShowLyricsPageCommands settings lyrics =
+        let getWordDuration index startTime =
+            let nextWord =
+                LyricsIndex.nextWord lyrics index
+                |> Option.map (LyricsIndex.getWord lyrics)
+            match LyricsIndex.getWord lyrics index, nextWord with
+            | { EndTime = Some endTime }, Some { StartTime = Some nextWordStartTime} ->
+                (endTime - startTime, nextWordStartTime - endTime)
+            | { EndTime = Some endTime }, _ ->
+                (endTime - startTime, TimeSpan.Zero)
+            | _ -> 
+                match LyricsIndex.tryPickNextWord (fun word -> word.StartTime) lyrics index with
+                | Some ((_nextIndex, offset), nextStartTime) ->
+                    ((nextStartTime - startTime) / float offset, TimeSpan.Zero)
+                | None -> failwithf "Can't determine duration of %A" index
+        
         let words indices startTime =
             ((startTime, []), indices)
             ||> List.fold (fun (startTime, list) index ->
                 let word = LyricsIndex.getWord lyrics index
                 let startTime = word.StartTime |> Option.defaultValue startTime
-                let (duration, breakDuration) =
-                    let nextWord =
-                        LyricsIndex.nextWord lyrics index
-                        |> Option.map (LyricsIndex.getWord lyrics)
-                    match LyricsIndex.getWord lyrics index, nextWord with
-                    | { EndTime = Some endTime }, Some { StartTime = Some nextWordStartTime} ->
-                        (endTime - startTime, nextWordStartTime - endTime)
-                    | { EndTime = Some endTime }, _ ->
-                        (endTime - startTime, TimeSpan.Zero)
-                    | _ -> 
-                        match LyricsIndex.tryPickNextWord (fun word -> word.StartTime) lyrics index with
-                        | Some ((_nextIndex, offset), nextStartTime) ->
-                            ((nextStartTime - startTime) / float offset, TimeSpan.Zero)
-                        | None -> failwithf "Can't determine duration of %A" index
+                let (duration, breakDuration) = getWordDuration index startTime
                 let part = {
                     Text = word.Text
                     Duration = duration
                 }
-                let list =
-                    match LyricsIndex.nextWord lyrics index with // TODO this is ugly
+                let breakPart =
+                    match LyricsIndex.nextWord lyrics index with
                     | Some v when v.PageIndex <> index.PageIndex ->
-                        list @ [ part ]
+                        None
                     | Some v when v.LineIndex <> index.LineIndex && breakDuration > TimeSpan.Zero ->
-                        let breakPart = { Text = ""; Duration = breakDuration }
-                        list @ [ part; breakPart ]
+                        Some { Text = ""; Duration = breakDuration }
                     | Some v when v.LineIndex <> index.LineIndex ->
-                        list @ [ part ]
+                        None
                     | Some _ ->
-                        let breakPart = { Text = " "; Duration = breakDuration }
-                        list @ [ part; breakPart ]
+                        Some { Text = " "; Duration = breakDuration }
                     | None ->
-                        list @ [ part ]
-                (startTime + duration, list)
+                        None
+                (startTime + duration, list @ [ part ] @ Option.toList breakPart)
             )
 
         let lines indices startTime =
