@@ -77,8 +77,23 @@ let run lyrics audioPath =
     let audio = playAudio audioPath speedFactor
     addTimes lyrics (fun () -> audio.GetPositionTimeSpan() * speedFactor)
 
+let checkBitRate (audioPath: string) =
+    let reader = new Mp3FileReaderBase(audioPath, Mp3FileReaderBase.FrameDecompressorBuilder(fun v -> new AcmMp3FrameDecompressor(v)))
+    let frames = [
+        let mutable frame = reader.ReadNextFrame()
+        while not <| isNull frame do
+            yield frame
+            frame <- reader.ReadNextFrame()
+    ]
+    let minBitRate = frames |> List.map (fun v -> v.BitRate) |> List.min
+    let maxBitRate = frames |> List.map (fun v -> v.BitRate) |> List.max
+    if minBitRate <> maxBitRate then
+        printfn $"WARNING: Audio file should have a constant bitrate, but bitrates are between %d{minBitRate / 1000} kbps and %d{maxBitRate / 1000} kbps"
+        printfn ""
+
 let lyrics = File.ReadLines "Matthias Reim - Verdammt Ich Lieb Dich.txt" |> Seq.splitBy String.IsNullOrWhiteSpace |> Lyrics.parse
 let audioPath = "Matthias Reim - Verdammt Ich Lieb Dich.mp3"
+checkBitRate audioPath
 run lyrics audioPath
 |> Lyrics.toString
 |> printfn "%s"
