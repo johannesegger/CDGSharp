@@ -1,6 +1,9 @@
 module CDG.Explainer
 
+open System
 open System.IO
+
+let private nl = Environment.NewLine
 
 module ColorIndex =
     let explain (ColorIndex v) = $"{v}"
@@ -22,8 +25,8 @@ module PixelRow =
 
 module TileBlockData =
     let explain v =
-        let pixelRows = v.PixelRows |> Array.map (PixelRow.explain >> sprintf "    %s") |> String.concat "\r\n"
-        $"Color1: {ColorIndex.explain v.Color1}, Color2: {ColorIndex.explain v.Color2}, Row: {Row.explain v.Row}, Column: {Column.explain v.Column}, Pixels:\r\n{pixelRows}"
+        let pixelRows = v.PixelRows |> Array.map (PixelRow.explain >> sprintf "    %s") |> String.concat nl
+        $"Color1: {ColorIndex.explain v.Color1}, Color2: {ColorIndex.explain v.Color2}, Row: {Row.explain v.Row}, Column: {Column.explain v.Column}, Pixels:{nl}{pixelRows}"
 
 module HScrollCommand =
     let explain = function
@@ -68,11 +71,11 @@ module CDGPacketInstruction =
         | ScrollCopy (hScroll, vScroll) -> $"Scroll copy: H-Scroll: {HScroll.explain hScroll}, V-Scroll: {VScroll.explain vScroll}"
         | DefineTransparentColor color -> $"Define transparent color: Color index: {ColorIndex.explain color}"
         | LoadColorTableLow colorSpecs ->
-            let colors = colorSpecs |> Array.map (Color.explain >> sprintf "    %s") |> String.concat "\r\n"
-            $"Load color table low: \r\n{colors}"
+            let colors = colorSpecs |> Array.map (Color.explain >> sprintf "    %s") |> String.concat nl
+            $"Load color table low: {nl}{colors}"
         | LoadColorTableHigh colorSpecs ->
-            let colors = colorSpecs |> Array.map (Color.explain >> sprintf "    %s") |> String.concat "\r\n"
-            $"Load color table high: \r\n{colors}"
+            let colors = colorSpecs |> Array.map (Color.explain >> sprintf "    %s") |> String.concat nl
+            $"Load color table high: {nl}{colors}"
 
 module SubCodePacket =
     let explain = function
@@ -85,10 +88,9 @@ module SubCodePacket =
             |> sprintf "Other: %s"
 
 let explain =
-    Array.mapi (fun i p -> $"{i}: {SubCodePacket.explain p}") >> String.concat "\r\n"
+    Array.mapi (fun i p -> $"{i}: {SubCodePacket.explain p}") >> String.concat nl
 
 let explainFile path =
     File.ReadAllBytes(path)
     |> Parser.parse
-    |> fun packets -> sprintf $"{explain packets}\r\n\r\n{packets.Length} packets"
-    |> fun content -> File.WriteAllText(Path.ChangeExtension(path, ".cdg.explain"), content)
+    |> fun packets -> printfn $"{explain packets}{nl}{nl}{packets.Length} packets"

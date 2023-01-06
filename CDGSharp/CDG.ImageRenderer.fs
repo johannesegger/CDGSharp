@@ -132,13 +132,8 @@ let renderImages packets =
     |> Seq.skip 1
     |> Seq.map (fun state -> state.Image)
 
-let renderImagesFromCDGFile (path: string) =
-    let targetDir = Path.GetFileNameWithoutExtension(path)
-    try
-        Directory.Delete(targetDir, recursive = true)
-    with :? DirectoryNotFoundException -> ()
-    Directory.CreateDirectory(targetDir) |> ignore
+let renderImagesFromFile (path: string) =
     File.ReadAllBytes(path)
     |> Parser.parse
     |> renderImages
-    |> Seq.iteri (fun index image-> image.SaveAsBmp(Path.Combine(targetDir, $"{(getTimeFromIndex index):``mm\-ss\-fffffff``}.bmp")))
+    |> Seq.mapi (fun index image-> getTimeFromIndex index, image)
