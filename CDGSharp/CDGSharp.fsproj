@@ -16,9 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="fonts\OldSchoolAdventures-42j9.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Compile Include="Array2D.fs" />
     <Compile Include="Seq.fs" />
     <Compile Include="CDG.fs" />
