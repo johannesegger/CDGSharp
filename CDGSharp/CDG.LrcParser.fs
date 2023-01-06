@@ -206,6 +206,18 @@ module LrcFile =
             }
         | _ -> failwithf "Invalid file: Metadata must be separated from lyrics by empty line"
     
+    let modifyTimes fn lrcFile =
+        { lrcFile with
+            Lyrics =
+                lrcFile.Lyrics
+                |> Lyrics.map (fun word ->
+                    { word with
+                        StartTime = word.StartTime |> Option.map fn
+                        EndTime = word.EndTime |> Option.map fn
+                    }
+                )
+        }
+
     let textToUpper lrcFile =
         { lrcFile with
             Metadata =
