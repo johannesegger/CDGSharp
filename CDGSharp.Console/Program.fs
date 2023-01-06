@@ -197,7 +197,7 @@ let settings = {
     SungTextColor = { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
     DefaultFont =
         let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
-        { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15 }
+        { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15; Style = Regular }
 }
 LrcFile.parseFile "Matthias Reim - Verdammt Ich Lieb Dich.lrc"
 |> fun file -> { file with Metadata = { file.Metadata with Title = "Verdammt\nIch Lieb Dich" } }

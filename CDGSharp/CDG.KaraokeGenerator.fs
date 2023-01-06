@@ -8,6 +8,7 @@ open CDG.Renderer
 type Font = {
     Type: FontType
     Size: int
+    Style: FontStyle
 }
 
 type Text = {
@@ -167,7 +168,7 @@ module KaraokeGenerator =
             List.replicate count EmptyPacket |> Some
 
     let private renderText text foregroundColor backgroundColor =
-        ImageProcessing.renderText text.Content text.Font.Type text.Font.Size foregroundColor backgroundColor
+        ImageProcessing.renderText text.Content text.Font.Type text.Font.Size text.Font.Style foregroundColor backgroundColor
         |> RenderedText.remove backgroundColor
 
     let private renderTiledText text x y foregroundColor backgroundColor =

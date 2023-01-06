@@ -12,7 +12,7 @@ let defaultSettings = {
     BackgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 0uy }
     DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
     SungTextColor = { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
-    DefaultFont = { Type = SystemFont "Arial"; Size = 15 }
+    DefaultFont = { Type = SystemFont "Arial"; Size = 15; Style = Regular }
 }
 
 let tests = testList "LrcToKaraoke" [
