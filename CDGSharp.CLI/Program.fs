@@ -89,10 +89,14 @@ let main args =
                 DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
                 SungTextColor = { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
                 DefaultFont =
+                    // let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
+                    // { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15; Style = Regular }
                     { Type = SystemFont "Arial"; Style = Bold; Size = 16 }
             }
 
             LrcFile.parseFile filePath
+            // |> LrcFile.textToUpper
+            // |> LrcFile.modifyTimes (fun v -> v.Add(TimeSpan.FromSeconds 5.))
             |> LrcToKaraoke.getKaraokeCommands settings
             |> KaraokeGenerator.generate
             |> Serializer.serialize
