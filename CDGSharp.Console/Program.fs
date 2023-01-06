@@ -34,10 +34,19 @@ type RenderImagesArgs =
             | File_Path _ -> "The path to the .cdg file."
             | Output_Directory _ -> "The target directory for the output images."
 
+type ConvertLrcArgs =
+    | [<AltCommandLine("-f")>] File_Path of path:string
+
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | File_Path _ -> "The path to the .lrc file."
+
 type CliArgs =
     | [<CliPrefix(CliPrefix.None)>] Format of ParseResults<FormatArgs>
     | [<CliPrefix(CliPrefix.None)>] Explain of ParseResults<ExplainArgs>
     | [<CliPrefix(CliPrefix.None)>] Render_Images of ParseResults<RenderImagesArgs>
+    | [<CliPrefix(CliPrefix.None)>] Convert_Lrc of ParseResults<ConvertLrcArgs>
 
     interface IArgParserTemplate with
         member this.Usage =
@@ -45,6 +54,7 @@ type CliArgs =
             | Format _ -> "Format packets of a .cdg file."
             | Explain _ -> "Explain packets of a .cdg file."
             | Render_Images _ -> "Render images of a .cdg file."
+            | Convert_Lrc _ -> "Convert an .lrc file into a .cdg file."
 
 [<EntryPoint>]
 let main args =
@@ -71,28 +81,23 @@ let main args =
 
             ImageRenderer.renderImagesFromFile filePath
             |> Seq.iter (fun (time, image) -> image.SaveAsBmp(Path.Combine(targetDir, $"{(time):``mm\-ss\-fffffff``}.bmp")))
+        | Convert_Lrc v ->
+            let filePath = v.GetResult(ConvertLrcArgs.File_Path)
+            let targetFilePath = Path.ChangeExtension(filePath, ".cdg")
+            let settings = {
+                BackgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
+                DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+                SungTextColor = { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
+                DefaultFont =
+                    { Type = SystemFont "Arial"; Style = Bold; Size = 16 }
+            }
+
+            LrcFile.parseFile filePath
+            |> LrcToKaraoke.getKaraokeCommands settings
+            |> KaraokeGenerator.generate
+            |> Serializer.serialize
+            |> fun content -> File.WriteAllBytes(targetFilePath, content)
+
     with e ->
         printfn "%s" e.Message
     0
-
-// let settings = {
-//     BackgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
-//     DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
-//     SungTextColor = { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
-//     DefaultFont =
-//         let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
-//         { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15; Style = Regular }
-//         // { Type = SystemFont "Arial"; Style = Bold; Size = 16 }
-// }
-
-// let file = @"C:\Users\egger\Sync\Johannes\Development\CDGSharp\Helene Fischer - Mit keinem Andern.lrc"
-// LrcFile.parseFile file
-// // |> fun file -> { file with Metadata = { file.Metadata with Title = "Verdammt\nIch Lieb Dich" } }
-// |> LrcFile.textToUpper
-// |> LrcFile.modifyTimes (fun v -> v.Add(TimeSpan.FromSeconds 5.))
-// |> LrcToKaraoke.getKaraokeCommands settings
-// |> KaraokeGenerator.generate
-// |> Serializer.serialize
-// |> fun content -> File.WriteAllBytes(Path.ChangeExtension(file, ".cdg"), content)
-
-// ImageRenderer.renderImagesFromCDGFile "Matthias Reim - Verdammt Ich Lieb Dich.cdg"
