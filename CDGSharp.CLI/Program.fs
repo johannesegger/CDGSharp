@@ -36,11 +36,15 @@ type RenderImagesArgs =
 
 type ConvertLrcArgs =
     | [<AltCommandLine("-f")>] File_Path of path:string
+    | [<AltCommandLine("-u")>] Uppercase_Text
+    | [<AltCommandLine("-m")>] Modify_Timestamps of seconds:float
 
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | File_Path _ -> "The path to the .lrc file."
+            | Uppercase_Text _ -> "Transform text to uppercase."
+            | Modify_Timestamps _ -> "Modify every timestamp in the .lrc file to align the lyrics with the audio file."
 
 type CliArgs =
     | [<CliPrefix(CliPrefix.None)>] Format of ParseResults<FormatArgs>
@@ -84,6 +88,8 @@ let main args =
         | Convert_Lrc v ->
             let filePath = v.GetResult(ConvertLrcArgs.File_Path)
             let targetFilePath = Path.ChangeExtension(filePath, ".cdg")
+            let uppercaseText = v.Contains(ConvertLrcArgs.Uppercase_Text)
+            let modifyTimes = v.GetResult(ConvertLrcArgs.Modify_Timestamps, defaultValue = 0.) |> TimeSpan.FromSeconds
             let settings = {
                 BackgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
                 DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
@@ -95,8 +101,8 @@ let main args =
             }
 
             LrcFile.parseFile filePath
-            // |> LrcFile.textToUpper
-            // |> LrcFile.modifyTimes (fun v -> v.Add(TimeSpan.FromSeconds 5.))
+            |> if uppercaseText then LrcFile.textToUpper else id
+            |> if modifyTimes <> TimeSpan.Zero then LrcFile.modifyTimes (fun v -> v.Add(modifyTimes)) else id
             |> LrcToKaraoke.getKaraokeCommands settings
             |> KaraokeGenerator.generate
             |> Serializer.serialize
