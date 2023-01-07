@@ -1,4 +1,5 @@
-﻿open CDG.LrcParser
+﻿open Argu
+open CDG.LrcParser
 open NAudio.Utils
 open NAudio.Wave
 open System
@@ -71,11 +72,10 @@ let playAudio (path: string) speedFactor =
     waveOut.Play()
     waveOut
 
-let run lyrics audioPath =
+let run lyrics audioPath speedFactor =
     printfn "Press <S> to set start time of current word."
     printfn "Press <E> to set end time of previous word. This is only really necessary if there's a gap between two words."
     printfn "Press <Escape> to end playback."
-    let speedFactor = 0.5
     let audio = playAudio audioPath speedFactor
     addTimes lyrics (fun () -> audio.GetPositionTimeSpan() * speedFactor)
 
@@ -93,9 +93,41 @@ let checkBitRate (audioPath: string) =
         printfn $"WARNING: Audio file should have a constant bitrate, but bitrates are between %d{minBitRate / 1000} kbps and %d{maxBitRate / 1000} kbps"
         printfn ""
 
-let lyrics = File.ReadLines "Matthias Reim - Verdammt Ich Lieb Dich.txt" |> Seq.splitBy String.IsNullOrWhiteSpace |> Lyrics.parse
-let audioPath = "Matthias Reim - Verdammt Ich Lieb Dich.mp3"
-checkBitRate audioPath
-run lyrics audioPath
-|> Lyrics.toString
-|> printfn "%s"
+type CliArgs =
+    | Lyrics_Path of string
+    | Audio_Path of string
+    | Target_Path of string
+    | Speed_Factor of float
+
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Lyrics_Path _ -> "Path to a text file that contains the raw lyrics."
+            | Audio_Path _ -> "Path to the audio file that is played during generation of the .lrc file."
+            | Target_Path _ -> "Path to the generated .lrc file."
+            | Speed_Factor _ -> "Controls the speed of the audio file, defaults to '0.5'."
+
+[<EntryPoint>]
+let main args =
+    try
+        let parser = ArgumentParser.Create<CliArgs>()
+        let parseResults = parser.ParseCommandLine(inputs = args)
+        let lyrics =
+            parseResults.GetResult(Lyrics_Path)
+            |> File.ReadLines
+            |> Seq.splitBy String.IsNullOrWhiteSpace
+            |> Lyrics.parse
+        let audioPath = parseResults.GetResult(Audio_Path)
+        let targetPath = parseResults.GetResult(Target_Path)
+        let speedFactor = parseResults.GetResult(Speed_Factor, defaultValue = 0.5)
+
+        checkBitRate audioPath
+
+        run lyrics audioPath speedFactor
+        |> Lyrics.toString
+        |> fun v -> File.WriteAllText(targetPath, v)
+
+        printfn $"Output written to %s{targetPath}"
+    with e ->
+        printfn "%s" e.Message
+    0
