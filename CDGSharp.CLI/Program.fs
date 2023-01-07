@@ -42,6 +42,9 @@ type ConvertLrcArgs =
     | Bg_Color of color:string
     | Text_Color of color:string
     | Sung_Text_Color of color:string
+    | Font of name_or_path:string
+    | Font_Size of size:int
+    | Font_Style of name:string
 
     interface IArgParserTemplate with
         member this.Usage =
@@ -52,6 +55,9 @@ type ConvertLrcArgs =
             | Bg_Color _ -> "Background color (RGB, 4 bits per channel, defaults to '#008')."
             | Text_Color _ -> "Text color (RGB, 4 bits per channel, defaults to '#FFF')."
             | Sung_Text_Color _ -> "Text color for sung text (RGB, 4 bits per channel, defaults to '#666')."
+            | Font _ -> "Name of a system font or path to a custom font, defaults to 'Arial'."
+            | Font_Size _ -> "Font size, defaults to '16'."
+            | Font_Style _ -> "Font style, 'Regular' or 'Bold', defaults to 'Regular'."
 
 type CliArgs =
     | [<CliPrefix(CliPrefix.None)>] Format of ParseResults<FormatArgs>
@@ -78,6 +84,11 @@ let parseColor (v: string) =
         let b = m.Groups.[1].Captures.[2].Value |> parseColorChannel
         { Red = ColorChannel r; Green = ColorChannel g; Blue = ColorChannel b }
     else failwith $"Can't parse \"%s{v}\" as color."
+
+let parseFontStyle (v: string) =
+    if v.Equals("Regular", StringComparison.InvariantCultureIgnoreCase) then Regular
+    elif v.Equals("Bold", StringComparison.InvariantCultureIgnoreCase) then Bold
+    else failwith $"Can't parse \"%s{v}\" as font style."
 
 [<EntryPoint>]
 let main args =
@@ -118,14 +129,16 @@ let main args =
             let sungTextColor =
                 v.TryPostProcessResult(ConvertLrcArgs.Sung_Text_Color, parseColor)
                 |> Option.defaultValue { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
+            let fontType =
+                v.GetResult(ConvertLrcArgs.Font, defaultValue = "Arial")
+                |> fun v -> if File.Exists v then CustomFont v else SystemFont v
+            let fontSize = v.GetResult(ConvertLrcArgs.Font_Size, defaultValue = 16)
+            let fontStyle = v.TryPostProcessResult(ConvertLrcArgs.Font_Style, parseFontStyle) |> Option.defaultValue Regular
             let settings = {
                 BackgroundColor = bgColor
                 DefaultTextColor = textColor
                 SungTextColor = sungTextColor
-                DefaultFont =
-                    // let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
-                    // { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15; Style = Regular }
-                    { Type = SystemFont "Arial"; Style = Bold; Size = 16 }
+                DefaultFont = { Type = fontType; Size = fontSize; Style = fontStyle }
             }
 
             LrcFile.parseFile filePath
