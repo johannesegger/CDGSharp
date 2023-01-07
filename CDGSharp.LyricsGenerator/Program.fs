@@ -39,7 +39,7 @@ let addTimes lyrics getTime =
     let rec fn lyrics index =
         writeLyricsLine lyrics index
         let input = Console.ReadKey(intercept = true).Key
-        if input = ConsoleKey.T then
+        if input = ConsoleKey.S then
             let lyrics = insertStartTime (getTime()) lyrics index
             match LyricsIndex.nextWord lyrics index with
             | Some newIndex ->
@@ -72,7 +72,9 @@ let playAudio (path: string) speedFactor =
     waveOut
 
 let run lyrics audioPath =
-    printfn "Press <Escape> to end playback"
+    printfn "Press <S> to set start time of current word."
+    printfn "Press <E> to set end time of previous word. This is only really necessary if there's a gap between two words."
+    printfn "Press <Escape> to end playback."
     let speedFactor = 0.5
     let audio = playAudio audioPath speedFactor
     addTimes lyrics (fun () -> audio.GetPositionTimeSpan() * speedFactor)
