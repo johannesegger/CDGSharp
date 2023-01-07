@@ -7,6 +7,7 @@ open CDG.LrcParser
 open SixLabors.ImageSharp
 open System
 open System.IO
+open System.Text.RegularExpressions
 
 type FormatArgs =
     | [<AltCommandLine("-f")>] File_Path of path:string
@@ -38,6 +39,9 @@ type ConvertLrcArgs =
     | [<AltCommandLine("-f")>] File_Path of path:string
     | [<AltCommandLine("-u")>] Uppercase_Text
     | [<AltCommandLine("-m")>] Modify_Timestamps of seconds:float
+    | Bg_Color of color:string
+    | Text_Color of color:string
+    | Sung_Text_Color of color:string
 
     interface IArgParserTemplate with
         member this.Usage =
@@ -45,6 +49,9 @@ type ConvertLrcArgs =
             | File_Path _ -> "The path to the .lrc file."
             | Uppercase_Text _ -> "Transform text to uppercase."
             | Modify_Timestamps _ -> "Modify every timestamp in the .lrc file to align the lyrics with the audio file."
+            | Bg_Color _ -> "Background color (RGB, 4 bits per channel, defaults to '#008')."
+            | Text_Color _ -> "Text color (RGB, 4 bits per channel, defaults to '#FFF')."
+            | Sung_Text_Color _ -> "Text color for sung text (RGB, 4 bits per channel, defaults to '#666')."
 
 type CliArgs =
     | [<CliPrefix(CliPrefix.None)>] Format of ParseResults<FormatArgs>
@@ -59,6 +66,18 @@ type CliArgs =
             | Explain _ -> "Explain packets of a .cdg file."
             | Render_Images _ -> "Render images of a .cdg file."
             | Convert_Lrc _ -> "Convert an .lrc file into a .cdg file."
+
+let parseColorChannel v =
+    Convert.ToByte(v, 16)
+
+let parseColor (v: string) =
+    let m = Regex.Match(v, "^#([0-9A-F]){3}$")
+    if m.Success then
+        let r = m.Groups.[1].Captures.[0].Value |> parseColorChannel
+        let g = m.Groups.[1].Captures.[1].Value |> parseColorChannel
+        let b = m.Groups.[1].Captures.[2].Value |> parseColorChannel
+        { Red = ColorChannel r; Green = ColorChannel g; Blue = ColorChannel b }
+    else failwith $"Can't parse \"%s{v}\" as color."
 
 [<EntryPoint>]
 let main args =
@@ -90,10 +109,19 @@ let main args =
             let targetFilePath = Path.ChangeExtension(filePath, ".cdg")
             let uppercaseText = v.Contains(ConvertLrcArgs.Uppercase_Text)
             let modifyTimes = v.GetResult(ConvertLrcArgs.Modify_Timestamps, defaultValue = 0.) |> TimeSpan.FromSeconds
+            let bgColor =
+                v.TryPostProcessResult(ConvertLrcArgs.Bg_Color, parseColor)
+                |> Option.defaultValue { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
+            let textColor =
+                v.TryPostProcessResult(ConvertLrcArgs.Text_Color, parseColor)
+                |> Option.defaultValue { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+            let sungTextColor =
+                v.TryPostProcessResult(ConvertLrcArgs.Sung_Text_Color, parseColor)
+                |> Option.defaultValue { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
             let settings = {
-                BackgroundColor = { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
-                DefaultTextColor = { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
-                SungTextColor = { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
+                BackgroundColor = bgColor
+                DefaultTextColor = textColor
+                SungTextColor = sungTextColor
                 DefaultFont =
                     // let fontDir = Path.Combine(Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly().Location), "fonts")
                     // { Type = CustomFont (Path.Combine(fontDir, "OldSchoolAdventures-42j9.ttf")); Size = 15; Style = Regular }
