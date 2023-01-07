@@ -120,25 +120,25 @@ let main args =
             let targetFilePath = Path.ChangeExtension(filePath, ".cdg")
             let uppercaseText = v.Contains(ConvertLrcArgs.Uppercase_Text)
             let modifyTimes = v.GetResult(ConvertLrcArgs.Modify_Timestamps, defaultValue = 0.) |> TimeSpan.FromSeconds
-            let bgColor =
-                v.TryPostProcessResult(ConvertLrcArgs.Bg_Color, parseColor)
-                |> Option.defaultValue { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
-            let textColor =
-                v.TryPostProcessResult(ConvertLrcArgs.Text_Color, parseColor)
-                |> Option.defaultValue { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
-            let sungTextColor =
-                v.TryPostProcessResult(ConvertLrcArgs.Sung_Text_Color, parseColor)
-                |> Option.defaultValue { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
-            let fontType =
-                v.GetResult(ConvertLrcArgs.Font, defaultValue = "Arial")
-                |> fun v -> if File.Exists v then CustomFont v else SystemFont v
-            let fontSize = v.GetResult(ConvertLrcArgs.Font_Size, defaultValue = 16)
-            let fontStyle = v.TryPostProcessResult(ConvertLrcArgs.Font_Style, parseFontStyle) |> Option.defaultValue Regular
             let settings = {
-                BackgroundColor = bgColor
-                DefaultTextColor = textColor
-                SungTextColor = sungTextColor
-                DefaultFont = { Type = fontType; Size = fontSize; Style = fontStyle }
+                BackgroundColor =
+                    v.TryPostProcessResult(ConvertLrcArgs.Bg_Color, parseColor)
+                    |> Option.defaultValue { Red = ColorChannel 0uy; Green = ColorChannel 0uy; Blue = ColorChannel 8uy }
+                DefaultTextColor =
+                    v.TryPostProcessResult(ConvertLrcArgs.Text_Color, parseColor)
+                    |> Option.defaultValue { Red = ColorChannel 15uy; Green = ColorChannel 15uy; Blue = ColorChannel 15uy }
+                SungTextColor =
+                    v.TryPostProcessResult(ConvertLrcArgs.Sung_Text_Color, parseColor)
+                    |> Option.defaultValue { Red = ColorChannel 6uy; Green = ColorChannel 6uy; Blue = ColorChannel 6uy }
+                DefaultFont = {
+                    Type =
+                        v.GetResult(ConvertLrcArgs.Font, defaultValue = "Arial")
+                        |> fun v -> if File.Exists v then CustomFont v else SystemFont v
+                    Size = v.GetResult(ConvertLrcArgs.Font_Size, defaultValue = 16)
+                    Style =
+                        v.TryPostProcessResult(ConvertLrcArgs.Font_Style, parseFontStyle)
+                        |> Option.defaultValue Regular
+                }
             }
 
             LrcFile.parseFile filePath
