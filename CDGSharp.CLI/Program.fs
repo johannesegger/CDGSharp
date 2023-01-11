@@ -4,6 +4,7 @@ open CDG.ImageProcessing
 open CDG.KaraokeGenerator
 open CDG.LrcToKaraoke
 open CDG.LrcParser
+open CDG.Serializer
 open SixLabors.ImageSharp
 open System
 open System.IO
@@ -146,7 +147,7 @@ let main args =
             |> if modifyTimes <> TimeSpan.Zero then LrcFile.modifyTimes (fun v -> v.Add(modifyTimes)) else id
             |> LrcToKaraoke.getKaraokeCommands settings
             |> KaraokeGenerator.generate
-            |> Serializer.serialize
+            |> Serializer.serializePackets
             |> fun content -> File.WriteAllBytes(targetFilePath, content)
 
     with e ->

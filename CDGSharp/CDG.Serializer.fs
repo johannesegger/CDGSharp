@@ -99,5 +99,6 @@ module SubCodePacket =
         | EmptyPacket -> Array.zeroCreate SubCodePacket.dataLength
         | OtherPacket data -> data
 
-let serialize =
-    Array.map SubCodePacket.serialize >> Array.collect id
+module Serializer =
+    let serializePackets =
+        Array.map SubCodePacket.serialize >> Array.collect id
