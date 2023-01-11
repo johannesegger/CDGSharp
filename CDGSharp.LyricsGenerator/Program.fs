@@ -5,20 +5,37 @@ open NAudio.Wave
 open System
 open System.IO
 
+type Position = Index of LyricsIndex | End
+
 let insertStartTime time lyrics index =
-    LyricsIndex.updateWord lyrics (fun word -> { word with StartTime = Some time }) index
+    LyricsIndex.updateWord
+        lyrics
+        (fun word -> { word with StartTime = Some time })
+        index
 
 let insertEndTime time lyrics index =
-    LyricsIndex.updateWord lyrics (fun word -> { word with EndTime = Some time }) index
+    LyricsIndex.updateWord
+        lyrics
+        (fun word -> { word with EndTime = Some time })
+        index
 
-let writeLyricsLine (Lyrics pages) index =
+let writeLyricsLine (Lyrics pages) position =
+    let (words, index) =
+        match position with
+        | Index v ->
+            pages.[v.PageIndex].[v.LineIndex], v
+        | End ->
+            let index = LyricsIndex.last (Lyrics pages)
+            let words = pages.[index.PageIndex].[index.LineIndex] @ [ { Text = " "; StartTime = None; EndTime = None } ]
+            words, { index with WordIndex = words.Length - 1 }
+
     Console.CursorLeft <- 0
-    let words = pages |> List.item index.PageIndex |> List.item index.LineIndex
     words
     |> List.iteri (fun i word ->
-        if i < index.WordIndex then Console.ForegroundColor <- ConsoleColor.Green
-        elif i = index.WordIndex then Console.ForegroundColor <- ConsoleColor.Yellow
         if i > 0 then printf " "
+        if Option.isSome word.StartTime && Option.isSome word.EndTime then Console.ForegroundColor <- ConsoleColor.Green
+        elif Option.isSome word.StartTime then Console.ForegroundColor <- ConsoleColor.Yellow
+        if i = index.WordIndex then Console.BackgroundColor <- ConsoleColor.DarkGray
         printf "%s" word.Text
         Console.ResetColor()
     )
@@ -27,41 +44,46 @@ let updateLyricsLine lyrics oldIndex newIndex =
     match newIndex with
     | Some newIndex ->
         if newIndex.PageIndex > oldIndex.PageIndex then
-            writeLyricsLine lyrics { oldIndex with WordIndex = oldIndex.WordIndex + 1 }
+            writeLyricsLine lyrics (Index { oldIndex with WordIndex = oldIndex.WordIndex + 1 })
             printf "%s" Lyrics.pageSeparator
         elif newIndex.LineIndex > oldIndex.LineIndex then
-            writeLyricsLine lyrics { oldIndex with WordIndex = oldIndex.WordIndex + 1 }
+            writeLyricsLine lyrics (Index { oldIndex with WordIndex = oldIndex.WordIndex + 1 })
             printf "%s" LyricsPage.lineSeparator
     | None ->
-        writeLyricsLine lyrics { oldIndex with WordIndex = oldIndex.WordIndex + 1 }
+        writeLyricsLine lyrics (Index { oldIndex with WordIndex = oldIndex.WordIndex + 1 })
         printf "%s" Lyrics.pageSeparator
 
 let addTimes lyrics getTime =
-    let rec fn lyrics index =
-        writeLyricsLine lyrics index
+    let rec fn lyrics position =
+        writeLyricsLine lyrics position
         let input = Console.ReadKey(intercept = true).Key
-        if input = ConsoleKey.S then
-            let lyrics = insertStartTime (getTime()) lyrics index
+        let time = getTime ()
+        match position, input with
+        | Index index, ConsoleKey.S ->
+            let lyrics = insertStartTime time lyrics index
             match LyricsIndex.nextWord lyrics index with
-            | Some newIndex ->
-                updateLyricsLine lyrics index (Some newIndex)
-                fn lyrics newIndex
+            | Some nextIndex ->
+                updateLyricsLine lyrics index (Some nextIndex)
+                fn lyrics (Index nextIndex)
             | None ->
-                updateLyricsLine lyrics index None
-                fn lyrics index
-        elif input = ConsoleKey.E then
+                fn lyrics End
+        | End, ConsoleKey.S -> fn lyrics position
+        | Index index, ConsoleKey.E ->
             match LyricsIndex.previousWord lyrics index with
             | Some previousIndex ->
-                let lyrics = insertEndTime (getTime()) lyrics previousIndex
-                fn lyrics index
+                let lyrics = insertEndTime time lyrics previousIndex
+                fn lyrics (Index index)
             | None ->
-                fn lyrics index
-        elif input = ConsoleKey.Escape then
-            let lyrics = insertEndTime (getTime()) lyrics index
+                fn lyrics (Index index)
+        | End, ConsoleKey.E ->
+            let lyrics = insertEndTime time lyrics (LyricsIndex.last lyrics)
+            fn lyrics position
+        | _, ConsoleKey.Escape ->
+            writeLyricsLine lyrics position
             printf "%s" Lyrics.pageSeparator
             lyrics
-        else fn lyrics index
-    fn lyrics LyricsIndex.zero
+        | _ -> fn lyrics position
+    fn lyrics (Index LyricsIndex.zero)
 
 let playAudio (path: string) speedFactor =
     let reader = new Mp3FileReaderBase(path, Mp3FileReaderBase.FrameDecompressorBuilder(fun v -> new AcmMp3FrameDecompressor(v)))
@@ -73,9 +95,10 @@ let playAudio (path: string) speedFactor =
     waveOut
 
 let run lyrics audioPath speedFactor =
-    printfn "Press <S> to set start time of current word."
-    printfn "Press <E> to set end time of previous word. This is only really necessary if there's a gap between two words."
+    printfn "Press <S> to set the start time of the current word."
+    printfn "Press <E> to set the end time of the  word. This is only really necessary when there's a gap between two words and after the very last word."
     printfn "Press <Escape> to end playback."
+    printfn ""
     let audio = playAudio audioPath speedFactor
     addTimes lyrics (fun () -> audio.GetPositionTimeSpan() * speedFactor)
 

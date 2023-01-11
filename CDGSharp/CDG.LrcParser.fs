@@ -94,6 +94,12 @@ type LyricsIndex = {
 }
 module LyricsIndex =
     let zero = { PageIndex = 0; LineIndex = 0; WordIndex = 0 }
+    let last (Lyrics pages) =
+        {
+            PageIndex = List.length pages - 1
+            LineIndex = (pages |> List.last |> List.length) - 1
+            WordIndex = (pages |> List.last |> List.last |> List.length) - 1
+        }
     let previousWord (Lyrics pages) index =
         if index.WordIndex > 0 then
             Some { index with WordIndex = index.WordIndex - 1 }
