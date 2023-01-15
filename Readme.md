@@ -1,13 +1,11 @@
 # CDGSharp
 
-[![Nuget](https://img.shields.io/nuget/v/CDGSharp)](https://www.nuget.org/packages/CDGSharp)
-
 CDGSharp is a [CD+G](https://jbum.com/cdg_revealed.html) parser, serializer and karaoke generator.
 It can also be used to better understand a .cdg file by formatting, explaining, or visualizing each CD+G packet.
 
 CDGSharp basically consists of three parts:
 
-* a [NuGet package](https://www.nuget.org/packages/CDGSharp) to use and/or extend CDGSharp's capabilities.
+* a [NuGet package](#api-via-nuget-package-) to use and/or extend CDGSharp's capabilities.
 * a [CLI](#cli) for inspecting a .cdg file and generating .cdg files from .lrc files (lyrics + timestamps + metadata)
 * a [LyricsGenerator](#lyrics-generator) console application for generating a basic .lrc file by adding timestamps to lyrics
 
@@ -34,7 +32,7 @@ OPTIONS:
     --help                display this list of options.
 ```
 
-## API via NuGet package
+## API via NuGet package [![Nuget](https://img.shields.io/nuget/v/CDGSharp)](https://www.nuget.org/packages/CDGSharp)
 
 The API basically has the same capabilities as the CLI plus:
 
